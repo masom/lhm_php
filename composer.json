@@ -1,0 +1,13 @@
+{
+    "name": "masom/lhm",
+    "description": "Large Hadron Migrator for phinx",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Martin Samson",
+            "email": "martin@workshopx.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
