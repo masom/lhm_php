@@ -55,7 +55,7 @@ class Chunker extends Command
 
         return implode( " ", [
             "INSERT IGNORE INTO {$this->destination->getName()} ({$destinationColumns})",
-            "SELECT {$originColumns} from {$this->origin->getName()}"
+            "SELECT {$originColumns} FROM {$this->origin->getName()}"
         ] );
     }
 }
