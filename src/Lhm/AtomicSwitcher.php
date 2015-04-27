@@ -2,14 +2,18 @@
 
 namespace Lhm;
 
-use Phinx\Table;
-use Phinx\Db\AdapterInterface;
-
+use Phinx\Db\Table;
+use Phinx\Db\Adapter\AdapterInterface;
 
 /**
  * Switched the origin table with the destination using an atomic rename.
  */
 class AtomicSwitcher {
+
+    /**
+     * @var AdapterInterface
+     */
+    protected $adapter;
 
     /**
      * @var Table
@@ -49,7 +53,7 @@ class AtomicSwitcher {
     }
 
     /**
-     * @throws \Lhm\TableMissingError
+     * @throws \RuntimeException
      */
     protected function validate() {
         if ($this->adapter->hasTable($this->origin->getName()) && $this->adapter->hasTable($this->destination->getName())) {

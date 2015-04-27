@@ -2,24 +2,28 @@
 
 namespace Lhm;
 
-use Phinx\Db\AdapterInterface;
+use Phinx\Db\Adapter\AdapterInterface;
+use Phinx\Db\Table;
 
 
-class SqlHelper {
+class SqlHelper
+{
 
     /**
      * @var AdapterInterface
      */
     protected $adapter;
 
-    public function __construct(AdapterInterface $adapter) {
+    public function __construct(AdapterInterface $adapter)
+    {
         $this->adapter = $adapter;
     }
 
     /**
      * @return string
      */
-    public function annotation() {
+    public function annotation()
+    {
         return '/* large hadron migration (php) */';
     }
 
@@ -27,18 +31,22 @@ class SqlHelper {
      * @param string $statement
      * @return string
      */
-    public function tagged($statement) {
+    public function tagged($statement)
+    {
         return "{$statement} {$this->annotation()}";
     }
 
-    public function versionString() {
+    /**
+     * @return string
+     */
+    public function versionString()
+    {
         $data = $this->adapter->query("show variables like 'version'");
 
         if (!count($data) > 0) {
         }
 
-        var_dump($data);die;
-        return $data[0]['Value'];
+        return $data[0];
     }
 
     /**
@@ -46,11 +54,14 @@ class SqlHelper {
      * @param array $columns
      * @return array
      */
-    public function typedColumns($type, array $columns) {
+    public function typedColumns($type, array $columns)
+    {
         $typed = [];
-        foreach($columns as $column) {
+
+        foreach ($columns as $column) {
             $typed[] = "{$type}.{$column}";
         }
+
         return $typed;
     }
 
@@ -59,7 +70,8 @@ class SqlHelper {
      * @param Table $destination
      * @return array
      */
-    public function quotedIntersectionColumns(Table $origin, Table $destination) {
+    public function quotedIntersectionColumns(Table $origin, Table $destination)
+    {
         $originColumns = $this->quotedColumns($origin);
         $destinationColumns = $this->quotedColumns($destination);
 
@@ -70,14 +82,17 @@ class SqlHelper {
      * @param Table $table
      * @return string[]
      */
-    public function quotedColumns(Table $table) {
+    public function quotedColumns(Table $table)
+    {
         $columns = [];
-        foreach($table->getColumns() as $column) {
+
+        foreach ($table->getColumns() as $column) {
             $columns[] = $this->adapter->quoteColumnName($column->getName());
         }
 
         return $columns;
     }
+
     /**
      * @link https://github.com/soundcloud/lhm/blob/master/lib/lhm/sql_helper.rb
      *
@@ -90,45 +105,48 @@ class SqlHelper {
      *
      * @return boolean
      */
-    public function supportsAtomicSwitch() {
+    public function supportsAtomicSwitch()
+    {
         list($major, $minor, $tiny) = array_map('intval', implode('.', $this->versionString()));
 
-        switch($major) {
-        case 4:
-            if ($minor && $minor < 2) {
-                return false;
-            }
-            break;
-        case 5:
-            switch($minor) {
-            case 0:
-                if ($tiny && $tiny < 52) {
-                    return false;
-                }
-                break;
-            case 1:
-                return false;
+        switch ($major) {
             case 4:
-                if ($tiny && $tiny < 4) {
+                if ($minor && $minor < 2) {
                     return false;
                 }
                 break;
             case 5:
-                if ($tiny && $tiny < 3) {
-                    return false;
+                switch ($minor) {
+                    case 0:
+                        if ($tiny && $tiny < 52) {
+                            return false;
+                        }
+                        break;
+                    case 1:
+                        return false;
+                    case 4:
+                        if ($tiny && $tiny < 4) {
+                            return false;
+                        }
+                        break;
+                    case 5:
+                        if ($tiny && $tiny < 3) {
+                            return false;
+                        }
+                        break;
                 }
                 break;
-            }
-        case 6:
-            switch($minor) {
-            case 0:
-                if ($tiny && $tiny < 11) {
-                    return false;
+            case 6:
+                switch ($minor) {
+                    case 0:
+                        if ($tiny && $tiny < 11) {
+                            return false;
+                        }
+                        break;
                 }
                 break;
-            }
-      }
+        }
 
-      return true;
+        return true;
     }
 }

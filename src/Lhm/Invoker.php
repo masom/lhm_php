@@ -2,7 +2,7 @@
 
 namespace Lhm;
 
-use Phinx\Table;
+use Phinx\Db\Table;
 use Phinx\Migration\MigrationInterface;
 
 
