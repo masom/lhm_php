@@ -124,6 +124,46 @@ class SqlHelperTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    public function testSupportsAtomicSwitch()
+    {
+        $versions = [
+            '3.0.1' => true,
+            '4.0.1' => false,
+            '4.2.2' => true,
+            '4.20.1' => true,
+            '5.0.20' => false,
+            '5.0.57' => true,
+            '5.1.3' => false,
+            '5.4.2' => false,
+            '5.4.4' => true,
+            '5.5.2' => false,
+            '5.5.3' => true,
+            '5.5.4' => true,
+            '6.0.3' => false,
+            '6.0.10' => false,
+            '6.0.11' => true,
+            '6.0.12' => true
+        ];
+
+        $expectedIterator = new \ArrayIterator($versions);
+        $matcherIterator = new \ArrayIterator(array_keys($versions));
+
+        $matcher = $this->any();
+        $this->adapter
+            ->expects($matcher)
+            ->method('query')
+            ->with("show variables like 'version'")
+            ->will($this->returnCallback(function () use ($matcherIterator) {
+                $value = $matcherIterator->current();
+                $matcherIterator->next();
+                return [$value];
+            }));
+
+        foreach ($expectedIterator as $version => $expected) {
+            $this->assertEquals($expected, $this->helper->supportsAtomicSwitch());
+        }
+    }
+
     public function testVersionString()
     {
         $this->adapter

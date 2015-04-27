@@ -43,9 +43,6 @@ class SqlHelper
     {
         $data = $this->adapter->query("show variables like 'version'");
 
-        if (!count($data) > 0) {
-        }
-
         return $data[0];
     }
 
@@ -107,30 +104,32 @@ class SqlHelper
      */
     public function supportsAtomicSwitch()
     {
-        list($major, $minor, $tiny) = array_map('intval', implode('.', $this->versionString()));
+        $version = $this->versionString();
+
+        list($major, $minor, $tiny) = array_map('intval', explode('.', $version));
 
         switch ($major) {
             case 4:
-                if ($minor && $minor < 2) {
+                if ($minor < 2) {
                     return false;
                 }
                 break;
             case 5:
                 switch ($minor) {
                     case 0:
-                        if ($tiny && $tiny < 52) {
+                        if ($tiny < 52) {
                             return false;
                         }
                         break;
                     case 1:
                         return false;
                     case 4:
-                        if ($tiny && $tiny < 4) {
+                        if ($tiny < 4) {
                             return false;
                         }
                         break;
                     case 5:
-                        if ($tiny && $tiny < 3) {
+                        if ($tiny < 3) {
                             return false;
                         }
                         break;
@@ -139,7 +138,7 @@ class SqlHelper
             case 6:
                 switch ($minor) {
                     case 0:
-                        if ($tiny && $tiny < 11) {
+                        if ($tiny < 11) {
                             return false;
                         }
                         break;
