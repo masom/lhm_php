@@ -41,19 +41,23 @@ class Chunker extends Command
     /** @var string */
     protected $primaryKey;
 
+    /** @var array */
+    protected $options;
+
     /**
      * @param AdapterInterface $adapter
      * @param Table $origin
      * @param Table $destination
      * @param SqlHelper $sqlHelper
      */
-    public function __construct(AdapterInterface $adapter, Table $origin, Table $destination, SqlHelper $sqlHelper = null)
+    public function __construct(AdapterInterface $adapter, Table $origin, Table $destination, SqlHelper $sqlHelper = null, array $options = [])
     {
         $this->adapter = $adapter;
         $this->origin = $origin;
         $this->destination = $destination;
         $this->sqlHelper = $sqlHelper ?: new SqlHelper($this->adapter);
 
+        $this->options = $options + ['stride' => 500];
 
         $this->primaryKey = $this->adapter->quoteColumnName($this->sqlHelper->extractPrimaryKey($this->origin));
 
@@ -66,16 +70,15 @@ class Chunker extends Command
 
         $this->getLogger()->info("Copying data from `{$this->origin->getName()}` into `{$this->destination->getName()}`");
 
-        $stride = 200;
 
         while ($this->nextToInsert < $this->limit || ($this->nextToInsert == 1 && $this->start == 1)) {
 
-            $query = $this->copy($this->bottom(), $this->top($stride));
+            $query = $this->copy($this->bottom(), $this->top($this->options['stride']));
 
             $this->getLogger()->debug($query);
 
             $this->adapter->query($query);
-            $this->nextToInsert = $this->top($stride) + 1;
+            $this->nextToInsert = $this->top($this->options['stride']) + 1;
         }
 
 

@@ -162,7 +162,7 @@ class ChunkerTest extends \PHPUnit_Framework_TestCase
                 }
             }));
 
-        $chunker = new Chunker($this->adapter, $this->origin, $this->destination, $this->sqlHelper);
+        $chunker = new Chunker($this->adapter, $this->origin, $this->destination, $this->sqlHelper, ['stride' => 200]);
         $chunker->run();
     }
 
