@@ -143,6 +143,7 @@ class SqlHelper
         $columns = [];
 
         foreach ($this->tableColumns($table) as $column) {
+
             $columns[] = $this->adapter->quoteColumnName($column->getName());
         }
 

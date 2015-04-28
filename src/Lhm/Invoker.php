@@ -102,8 +102,10 @@ class Invoker
         $chunker = new Chunker($adapter, $this->origin, $this->destination);
         $chunker->setLogger($this->logger);
 
+        //TODO Should \Phinx\Db\Table be wrapped to support removeColumn like LHM does?
+        $migration($this->temporaryTable());
+
         $entangler->run(function () use ($chunker, $switcher, $migration) {
-            $migration($this->temporaryTable());
             $chunker->run();
             $switcher->run();
         });
@@ -113,17 +115,27 @@ class Invoker
     {
         $adapter = $this->migration->getAdapter();
 
+        $logger = $this->getLogger();
+        $logger->debug("Getting mysql session lock wait timeouts");
+
         //TODO File a bug with Phinx. $adapter->query does not return an array ( returns a PDOStatement )
         $globalInnodbLockWaitTimeout = $adapter->query("SHOW GLOBAL VARIABLES LIKE 'innodb_lock_wait_timeout'")->fetchColumn(0);
         $globalLockWaitTimeout = $adapter->query("SHOW GLOBAL VARIABLES LIKE 'lock_wait_timeout'")->fetchColumn(0);
 
+
         if ($globalInnodbLockWaitTimeout) {
             $value = ((int)$globalInnodbLockWaitTimeout) + static::LOCK_WAIT_TIMEOUT_DELTA;
+
+            $logger->debug("Setting session innodb_lock_wait_timeout to `{$value}`");
+
             $adapter->query("SET SESSION innodb_lock_wait_timeout={$value}");
         }
 
         if ($globalLockWaitTimeout) {
             $value = ((int)$globalLockWaitTimeout) + static::LOCK_WAIT_TIMEOUT_DELTA;
+
+            $logger->debug("Setting session lock_wait_timeout to `{$value}`");
+
             $adapter->query("SET SESSION lock_wait_timeout={$value}");
         }
     }
