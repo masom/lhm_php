@@ -4,6 +4,7 @@ namespace Lhm;
 
 use Phinx\Db\Table;
 use Phinx\Migration\MigrationInterface;
+use Psr\Log\LoggerInterface;
 
 
 class Invoker
@@ -32,6 +33,11 @@ class Invoker
     protected $options;
 
     /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
      * @param MigrationInterface $migration
      * @param Table $origin
      * @param array $options
@@ -42,6 +48,22 @@ class Invoker
 
         $this->migration = $migration;
         $this->origin = $origin;
+    }
+
+    /**
+     * @param LoggerInterface $logger
+     */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+    }
+
+    /**
+     * @return LoggerInterface
+     */
+    protected function getLogger()
+    {
+        return $this->logger ?: new NullLogger();
     }
 
     /**
@@ -58,6 +80,7 @@ class Invoker
     public function execute(callable $migration)
     {
         if (!$this->options['entangler']) {
+            $this->getLogger()->warning("Executing migration in-place.");
             $migration($this->origin);
             return;
         }
@@ -71,8 +94,13 @@ class Invoker
         $this->setSessionLockWaitTimeouts();
 
         $entangler = new Entangler($adapter, $this->origin, $this->destination);
+        $entangler->setLogger($this->logger);
+
         $switcher = new AtomicSwitcher($adapter, $this->origin, $this->destination);
+        $switcher->setLogger($this->logger);
+
         $chunker = new Chunker($adapter, $this->origin, $this->destination);
+        $chunker->setLogger($this->logger);
 
         $entangler->run(function () use ($chunker, $switcher, $migration) {
             $migration($this->temporaryTable());
@@ -120,6 +148,7 @@ class Invoker
             throw new \RuntimeException("The table `{$temporaryTableName}` already exists.");
         }
 
+        $this->getLogger()->info("Creating temporary table `{$temporaryTableName}` from `{$this->origin->getName()}`");
         $adapter->query("CREATE TABLE {$temporaryTableName} LIKE {$this->origin->getName()}");
 
         return $this->migration->table($temporaryTableName, []);

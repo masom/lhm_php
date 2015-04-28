@@ -4,6 +4,7 @@ namespace Lhm;
 
 use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Table;
+use Phinx\Db\Table\Column;
 
 
 class SqlHelper
@@ -79,6 +80,32 @@ class SqlHelper
     }
 
     /**
+     * @return Column[]
+     */
+    public function tableColumns(Table $table)
+    {
+        $databaseName = $this->adapter->getOption('name');
+
+        $schema = $this->adapter->fetchAll(implode(" ", [
+            "SELECT * FROM information_schema.columns",
+            "WHERE table_name = '{$table->GetName()}'",
+            "AND table_schema ='{$databaseName}'"
+
+        ]));
+
+        $columns = [];
+
+        foreach ($schema as $definition) {
+            $column = new Column();
+            $column->setName($definition['COLUMN_NAME']);
+
+            $columns[] = $column;
+        }
+
+        return $columns;
+    }
+
+    /**
      * @param string $type
      * @param array $columns
      * @return array
@@ -115,7 +142,7 @@ class SqlHelper
     {
         $columns = [];
 
-        foreach ($table->getColumns() as $column) {
+        foreach ($this->tableColumns($table) as $column) {
             $columns[] = $this->adapter->quoteColumnName($column->getName());
         }
 

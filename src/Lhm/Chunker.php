@@ -45,7 +45,12 @@ class Chunker extends Command
 
     protected function execute()
     {
-        $this->adapter->query($this->copy());
+        $query = $this->copy();
+
+        $this->getLogger()->info("Copying data from `{$this->origin->getName()}` into `{$this->destination->getName()}`");
+        $this->getLogger()->debug($query);
+
+        $this->adapter->query($query);
     }
 
     protected function copy()
