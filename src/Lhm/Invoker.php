@@ -163,7 +163,7 @@ class Invoker
         $this->getLogger()->info("Creating temporary table `{$temporaryTableName}` from `{$this->origin->getName()}`");
         $adapter->query("CREATE TABLE {$temporaryTableName} LIKE {$this->origin->getName()}");
 
-        return $this->migration->table($temporaryTableName, []);
+        return $this->migration->table($temporaryTableName, [], $adapter);
     }
 
     /**
