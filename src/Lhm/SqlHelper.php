@@ -86,7 +86,7 @@ class SqlHelper
     {
         $databaseName = $this->adapter->getOption('name');
 
-        $schema = $this->adapter->fetchAll(implode(" ", [
+        $schema = $this->adapter->query(implode(" ", [
             "SELECT * FROM information_schema.columns",
             "WHERE table_name = '{$table->GetName()}'",
             "AND table_schema ='{$databaseName}'"

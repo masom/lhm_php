@@ -43,24 +43,14 @@ class SqlHelperTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function testQuotedColumns()
+    public function testTableColumns()
     {
-        /**
-         * @var Column[] $columns
-         */
-        $columns = [
-            new Column(),
-            new Column()
-        ];
-
-        $columns[0]->setName('id');
-        $columns[1]->setName('name');
 
         $table = $this->getMockBuilder(Table::class)->disableOriginalConstructor()->getMock();
         $table
             ->expects($this->once())
-            ->method('getColumns')
-            ->will($this->returnValue($columns));
+            ->method('getName')
+            ->will($this->returnValue('ponies'));
 
         $this->adapter
             ->expects($this->any())
@@ -68,6 +58,54 @@ class SqlHelperTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnCallback(function ($name) {
                 return "`{$name}`";
             }));
+
+        $definitions = [['COLUMN_NAME' => 'id'], ['COLUMN_NAME' => 'name']];
+
+        $this->adapter
+            ->expects($this->once())
+            ->method('getOption')
+            ->with('name')
+            ->will($this->returnValue('lhm_tests'));
+
+        $this->adapter
+            ->expects($this->once())
+            ->method('query')
+            ->with("SELECT * FROM information_schema.columns WHERE table_name = 'ponies' AND table_schema ='lhm_tests'")
+            ->will($this->returnValue($definitions));
+
+        $columns = $this->helper->tableColumns($table);
+        $this->assertEquals(2, count($columns));
+        $this->assertEquals('id', $columns[0]->getName());
+    }
+
+    public function testQuotedColumns()
+    {
+        $table = $this->getMockBuilder(Table::class)->disableOriginalConstructor()->getMock();
+        $table
+            ->expects($this->once())
+            ->method('getName')
+            ->will($this->returnValue('ponies'));
+
+        $this->adapter
+            ->expects($this->any())
+            ->method('quoteColumnName')
+            ->will($this->returnCallback(function ($name) {
+                return "`{$name}`";
+            }));
+
+        $definitions = [['COLUMN_NAME' => 'id'], ['COLUMN_NAME' => 'name']];
+
+        $this->adapter
+            ->expects($this->once())
+            ->method('getOption')
+            ->with('name')
+            ->will($this->returnValue('lhm_tests'));
+
+        $this->adapter
+            ->expects($this->once())
+            ->method('query')
+            ->with("SELECT * FROM information_schema.columns WHERE table_name = 'ponies' AND table_schema ='lhm_tests'")
+            ->will($this->returnValue($definitions));
 
         $expected = ['`id`', '`name`'];
         $this->assertEquals($expected, $this->helper->quotedColumns($table));
@@ -75,6 +113,18 @@ class SqlHelperTest extends \PHPUnit_Framework_TestCase
 
     public function testQuotedIntersectionColumns()
     {
+        $origin = $this->getMockBuilder(Table::class)->disableOriginalConstructor()->getMock();
+        $origin
+            ->expects($this->once())
+            ->method('getName')
+            ->will($this->returnValue('ponies'));
+
+        $destination = $this->getMockBuilder(Table::class)->disableOriginalConstructor()->getMock();
+        $destination
+            ->expects($this->once())
+            ->method('getName')
+            ->will($this->returnValue('ponies_new'));
+
         $this->adapter
             ->expects($this->any())
             ->method('quoteColumnName')
@@ -82,37 +132,37 @@ class SqlHelperTest extends \PHPUnit_Framework_TestCase
                 return "`{$name}`";
             }));
 
-        /** @var Column[] $originColumns */
-        $originColumns = [
-            new Column(),
-            new Column(),
-            new Column()
+        $definitions = [
+            'origin'=>[
+                ['COLUMN_NAME' => 'id'],
+                ['COLUMN_NAME' => 'name'],
+                ['COLUMN_NAME' => 'something']
+            ],
+            'destination' => [
+                ['COLUMN_NAME' => 'id'],
+                ['COLUMN_NAME' => 'name'],
+                ['COLUMN_NAME' => 'content']
+            ]
         ];
-        $originColumns[0]->setName('id');
-        $originColumns[1]->setName('name');
-        $originColumns[2]->setName('something');
 
+        $this->adapter
+            ->expects($this->exactly(2))
+            ->method('getOption')
+            ->with('name')
+            ->will($this->returnValue('lhm_tests'));
 
-        /** @var Column[] $destinationColumns */
-        $destinationColumns = [
-            new Column(),
-            new Column(),
-            new Column()
-        ];
-        $destinationColumns[0]->setName('id');
-        $destinationColumns[1]->setName('name');
-        $destinationColumns[2]->setName('content');
-
-        $origin = $this->getMockBuilder(Table::class)->disableOriginalConstructor()->getMock();
-        $origin
-            ->expects($this->once())
-            ->method('getColumns')
-            ->will($this->returnValue($originColumns));
-        $destination = $this->getMockBuilder(Table::class)->disableOriginalConstructor()->getMock();
-        $destination
-            ->expects($this->once())
-            ->method('getColumns')
-            ->will($this->returnValue($destinationColumns));
+        $this->adapter
+            ->expects($this->exactly(2))
+            ->method('query')
+            ->will($this->returnCallback(function ($query) use ($definitions) {
+                switch ($query) {
+                    case "SELECT * FROM information_schema.columns WHERE table_name = 'ponies' AND table_schema ='lhm_tests'":
+                        return $definitions['origin'];
+                    case "SELECT * FROM information_schema.columns WHERE table_name = 'ponies_new' AND table_schema ='lhm_tests'":
+                        return $definitions['destination'];
+                }
+                return null;
+            }));
 
         /**
          * `something` and `content` should not be in the field list.

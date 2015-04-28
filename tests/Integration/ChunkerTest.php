@@ -61,50 +61,63 @@ class ChunkerTest extends \PHPUnit_Framework_TestCase
 
     public function test()
     {
-        /** @var Column[] $originColumns */
-        $originColumns = [
-            new Column(),
-            new Column(),
-            new Column()
+        $definitions = [
+            'origin' => [
+                ['COLUMN_NAME' => 'id'],
+                ['COLUMN_NAME' => 'name'],
+                ['COLUMN_NAME' => 'something']
+            ],
+            'destination' => [
+                ['COLUMN_NAME' => 'id'],
+                ['COLUMN_NAME' => 'name'],
+                ['COLUMN_NAME' => 'content']
+            ]
         ];
-        $originColumns[0]->setName('id');
-        $originColumns[1]->setName('name');
-        $originColumns[2]->setName('something');
-
-        /** @var Column[] $destinationColumns */
-        $destinationColumns = [
-            new Column(),
-            new Column(),
-            new Column()
-        ];
-        $destinationColumns[0]->setName('id');
-        $destinationColumns[1]->setName('name');
-        $destinationColumns[2]->setName('something_else');
 
         $this->origin
             ->expects($this->atLeastOnce())
             ->method('getName')
             ->will($this->returnValue('users'));
 
-        $this->origin
-            ->expects($this->atLeastOnce())
-            ->method('getColumns')
-            ->will($this->returnValue($originColumns));
 
         $this->destination
             ->expects($this->atLeastOnce())
             ->method('getName')
             ->will($this->returnValue('users_new'));
 
-        $this->destination
-            ->expects($this->atLeastOnce())
-            ->method('getColumns')
-            ->will($this->returnValue($destinationColumns));
-
+        $matcher = $this->atLeastOnce();
         $this->adapter
-            ->expects($this->once())
+            ->expects($matcher)
             ->method('query')
-            ->with('INSERT IGNORE INTO users_new (`id`,`name`) SELECT users.`id`,users.`name` FROM users');
+            ->will($this->returnCallback(function ($query) use ($matcher, $definitions) {
+                switch ($matcher->getInvocationCount()) {
+                    case 1:
+                        $this->assertEquals(
+                            "SELECT * FROM information_schema.columns WHERE table_name = 'users' AND table_schema =''",
+                            $query
+                        );
+                        return $definitions['origin'];
+                        break;
+
+                    case 2:
+                        $this->assertEquals(
+                            "SELECT * FROM information_schema.columns WHERE table_name = 'users_new' AND table_schema =''",
+                            $query
+                        );
+                        return $definitions['destination'];
+                        break;
+
+                    case 3:
+                        $this->assertEquals(
+                            'INSERT IGNORE INTO users_new (`id`,`name`) SELECT users.`id`,users.`name` FROM users',
+                            $query
+                        );
+                        break;
+                    default:
+                        $this->fail($query);
+                        break;
+                }
+            }));
         $this->chunker->run();
     }
 
