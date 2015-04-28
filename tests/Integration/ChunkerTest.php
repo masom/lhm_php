@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Tests\Integration;
+namespace Lhm\Tests\Integration;
 
 
 use Lhm\Chunker;

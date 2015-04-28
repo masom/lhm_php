@@ -1,7 +1,7 @@
 <?php
 
 
-namespace tests\Integration;
+namespace Lhm\Tests\Integration;
 
 
 use Lhm\AtomicSwitcher;

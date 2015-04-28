@@ -14,6 +14,9 @@
             "Lhm\\": "src/Lhm"
         }
     },
+    "autoload-dev": {
+      "psr-4": { "Lhm\\Tests\\": "tests/" }
+    },
     "require-dev": {
         "phpunit/phpunit": "4.6.4",
         "robmorgan/phinx": "0.4.*"

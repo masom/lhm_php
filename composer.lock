@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "56dca1570f181128e69f1fdca60c443a",
+    "hash": "c67afcc0223c9cfde4b319095133d447",
     "packages": [],
     "packages-dev": [
         {
@@ -117,12 +117,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpspec/prophecy.git",
-                "reference": "686513b022b0fe3b5da716e40d7ade759307f31f"
+                "reference": "3132b1f44c7bf2ec4c7eb2d3cb78fdeca760d373"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpspec/prophecy/zipball/686513b022b0fe3b5da716e40d7ade759307f31f",
-                "reference": "686513b022b0fe3b5da716e40d7ade759307f31f",
+                "url": "https://api.github.com/repos/phpspec/prophecy/zipball/3132b1f44c7bf2ec4c7eb2d3cb78fdeca760d373",
+                "reference": "3132b1f44c7bf2ec4c7eb2d3cb78fdeca760d373",
                 "shasum": ""
             },
             "require": {
@@ -169,7 +169,7 @@
                 "spy",
                 "stub"
             ],
-            "time": "2015-04-27 17:45:22"
+            "time": "2015-04-27 22:15:08"
         },
         {
             "name": "phpunit/php-code-coverage",

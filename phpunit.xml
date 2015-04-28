@@ -1,7 +1,8 @@
 <phpunit verbose="false"
          convertErrorsToExceptions="true"
          convertNoticesToExceptions="true"
-         convertWarningsToExceptions="true">
+         convertWarningsToExceptions="true"
+        bootstrap="tests/bootstrap.php">
 
     <testsuites>
         <testsuite name="unit">
@@ -12,6 +13,12 @@
     <testsuites>
         <testsuite name="integration">
             <directory>tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+
+    <testsuites>
+        <testsuite name="persistence">
+            <directory>tests/Persistence</directory>
         </testsuite>
     </testsuites>
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Lhm\Tests\Unit;
 
 use Lhm\SqlHelper;
 use Phinx\Db\Adapter\AdapterInterface;
