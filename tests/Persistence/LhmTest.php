@@ -4,17 +4,17 @@
 namespace Lhm\Tests\Persistence;
 
 
+use Lhm\Lhm;
 use Lhm\Tests\Persistence\Migrations\HybridPhinxMigration;
 use Lhm\Tests\Persistence\Migrations\InitialMigration;
 use Lhm\Tests\Persistence\Migrations\LhmMigration;
-use Phinx\Db\Adapter\MysqlAdapter;
 use Phinx\Db\Table;
 use Phinx\Migration\Manager\Environment;
 use Phinx\Migration\MigrationInterface;
-use Symfony\Component\Console\Output\NullOutput;
+use tests\Persistence\AbstractPersistenceTest;
 
 
-class LhmTest extends \PHPUnit_Framework_TestCase
+class LhmTest extends AbstractPersistenceTest
 {
 
     /** @var Environment */
@@ -24,25 +24,8 @@ class LhmTest extends \PHPUnit_Framework_TestCase
     {
         parent::setUp();
 
-        $options = [
-            'host' => getenv('LHM_DATABASE_HOST') ?: 'localhost',
-            'name' => getenv('LHM_DATABASE_NAME') ?: 'lhm_php_test',
-            'user' => getenv('LHM_DATABASE_USER') ?: 'root',
-            'pass' => getenv('LHM_DATABASE_PASSWORD') ?: null,
-            'port' => getenv('LHM_DATABASE_PORT') ?: 3306
-        ];
-
-        $adapter = new MysqlAdapter($options, new NullOutput());
-
-        // ensure the database is empty for each test
-        $adapter->dropDatabase($options['name']);
-        $adapter->createDatabase($options['name']);
-
-        // leave the adapter in a disconnected state for each test
-        $adapter->disconnect();
-
         $this->environment = new Environment('test', []);
-        $this->environment->setAdapter($adapter);
+        $this->environment->setAdapter($this->adapter);
     }
 
     protected function tearDown()
@@ -56,10 +39,29 @@ class LhmTest extends \PHPUnit_Framework_TestCase
         $time = time();
         $this->environment->executeMigration(new InitialMigration($time - 1), MigrationInterface::UP);
         $this->environment->executeMigration(new LhmMigration($time), MigrationInterface::UP);
+
+        $count = $this->adapter->query("SELECT COUNT(*) FROM ponies")->fetchColumn(0);
+
+        /** @var \PDOStatement $statement */
+        $statement = $this->adapter->query("SELECT nickname FROM ponies");
+        $nickname = $statement->fetchColumn(0);
+
+        $this->assertEquals(100, $count);
+        $this->assertEquals('derp', $nickname);
     }
 
     public function testMigrateHybrid()
     {
-        $this->environment->executeMigration(new HybridPhinxMigration(time()), MigrationInterface::UP);
+        $time = time();
+        $this->environment->executeMigration(new InitialMigration($time - 1), MigrationInterface::UP);
+        $this->environment->executeMigration(new HybridPhinxMigration($time), MigrationInterface::UP);
+
+        /** @var \PDOStatement $statement */
+        $statement = $this->adapter->query("SELECT age, location FROM ponies");
+        $age = $statement->fetchColumn(0);
+        $location = $statement->fetchColumn(1);
+
+        $this->assertEquals(null, $age);
+        $this->assertEquals('Canada', $location);
     }
 }

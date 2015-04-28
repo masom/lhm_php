@@ -49,6 +49,13 @@ class EntanglerTest extends \PHPUnit_Framework_TestCase
                 return "`{$name}`";
             }));
 
+        $this->adapter
+            ->expects($this->any())
+            ->method('quoteTableName')
+            ->will($this->returnCallback(function ($name) {
+                return "'{$name}'";
+            }));
+
         $this->origin = $this->getMockBuilder(Table::class)->disableOriginalConstructor()->getMock();
         $this->destination = $this->getMockBuilder(Table::class)->disableOriginalConstructor()->getMock();
 
@@ -141,11 +148,6 @@ class EntanglerTest extends \PHPUnit_Framework_TestCase
 
         $this->origin
             ->expects($this->atLeastOnce())
-            ->method('getOptions')
-            ->will($this->returnValue(['primary_key' => 'id']));
-
-        $this->origin
-            ->expects($this->atLeastOnce())
             ->method('getColumns')
             ->will($this->returnValue($originColumns));
 
@@ -161,6 +163,8 @@ class EntanglerTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($destinationColumns));
 
         $expectations = [
+            "SELECT `COLUMN_NAME` FROM `information_schema`.`COLUMNS` WHERE (`TABLE_SCHEMA` = '') AND (`TABLE_NAME` = 'users') AND (`COLUMN_KEY` = 'PRI');",
+
             implode("\n ", [
                 'CREATE TRIGGER lhmt_delete_users',
                 'AFTER DELETE ON users FOR EACH ROW',
@@ -187,6 +191,9 @@ class EntanglerTest extends \PHPUnit_Framework_TestCase
             ->method('query')
             ->will($this->returnCallback(function ($query) use ($matcher, &$expectations) {
                 $this->assertEquals($expectations[$matcher->getInvocationCount() - 1], $query);
+                if ($matcher->getInvocationCount() === 1) {
+                    return 'id';
+                }
             }));
 
         $this->entangler->before();
@@ -222,15 +229,15 @@ class EntanglerTest extends \PHPUnit_Framework_TestCase
             ->method('getName')
             ->will($this->returnValue('users'));
 
-        $this->origin
-            ->expects($this->atLeastOnce())
-            ->method('getOptions')
-            ->will($this->returnValue(['primary_key' => 'id']));
-
         $this->destination
             ->expects($this->atLeastOnce())
             ->method('getName')
             ->will($this->returnValue('users_new'));
+
+        $this->adapter
+            ->expects( $this->once() )
+            ->method('query')
+            ->will($this->returnValue("id"));
 
         $this->assertEquals(
             implode("\n ", [

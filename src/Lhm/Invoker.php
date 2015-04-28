@@ -74,7 +74,8 @@ class Invoker
         $switcher = new AtomicSwitcher($adapter, $this->origin, $this->destination);
         $chunker = new Chunker($adapter, $this->origin, $this->destination);
 
-        $entangler->run(function () use ($chunker, $switcher) {
+        $entangler->run(function () use ($chunker, $switcher, $migration) {
+            $migration($this->temporaryTable());
             $chunker->run();
             $switcher->run();
         });

@@ -47,6 +47,38 @@ class SqlHelper
     }
 
     /**
+     * Extract the primary key of a table.
+     *
+     * @param Table $table
+     * @return string
+     */
+    public function extractPrimaryKey(Table $table)
+    {
+        $tableName = $table->getName();
+        $databaseName = $this->adapter->getOption('name');
+
+        $query = implode(" ", [
+            'SELECT `COLUMN_NAME`',
+            'FROM `information_schema`.`COLUMNS`',
+            "WHERE (`TABLE_SCHEMA` = '{$databaseName}')",
+            "AND (`TABLE_NAME` = '{$tableName}')",
+            "AND (`COLUMN_KEY` = 'PRI');"
+        ]);
+
+        $result = $this->adapter->query($query);
+
+        if ($result instanceof \PDOStatement) {
+            return $result->fetchColumn(0);
+        }
+
+        if (is_array($result)) {
+            return $result[0];
+        }
+
+        return $result;
+    }
+
+    /**
      * @param string $type
      * @param array $columns
      * @return array

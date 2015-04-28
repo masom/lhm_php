@@ -53,6 +53,24 @@ class AtomicSwitcher extends Command
     /**
      * @return array
      */
+    public function getOptions()
+    {
+        return $this->options;
+    }
+
+    /**
+     * Set an option
+     * @param string $name
+     * @param mixed $value
+     */
+    public function setOption($name, $value)
+    {
+        $this->options[$name] = $value;
+    }
+
+    /**
+     * @return array
+     */
     protected function statements()
     {
         $archiveName = $this->options['archive_name'];

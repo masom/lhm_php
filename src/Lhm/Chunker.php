@@ -31,31 +31,32 @@ class Chunker extends Command
 
     /**
      * @param AdapterInterface $adapter
-     * @param Table            $origin
-     * @param Table            $destination
-     * @param SqlHelper        $sqlHelper
+     * @param Table $origin
+     * @param Table $destination
+     * @param SqlHelper $sqlHelper
      */
-    public function __construct( AdapterInterface $adapter, Table $origin, Table $destination, SqlHelper $sqlHelper = null )
+    public function __construct(AdapterInterface $adapter, Table $origin, Table $destination, SqlHelper $sqlHelper = null)
     {
-        $this->adapter     = $adapter;
-        $this->origin      = $origin;
+        $this->adapter = $adapter;
+        $this->origin = $origin;
         $this->destination = $destination;
-        $this->sqlHelper   = $sqlHelper ?: new SqlHelper( $this->adapter );
+        $this->sqlHelper = $sqlHelper ?: new SqlHelper($this->adapter);
     }
 
     protected function execute()
     {
-        $this->adapter->query( $this->copy() );
+        $this->adapter->query($this->copy());
     }
 
     protected function copy()
     {
-        $destinationColumns = implode( ",", $this->sqlHelper->quotedIntersectionColumns( $this->origin, $this->destination ) );
-        $originColumns      = implode( ",", $this->sqlHelper->quotedColumns( $this->origin ) );
+        $intersectedColumns = $this->sqlHelper->quotedIntersectionColumns($this->origin, $this->destination);
+        $destinationColumns = implode(",", $intersectedColumns);
+        $originColumns = implode(",", $this->sqlHelper->typedColumns($this->origin->getName(), $intersectedColumns));
 
-        return implode( " ", [
+        return implode(" ", [
             "INSERT IGNORE INTO {$this->destination->getName()} ({$destinationColumns})",
             "SELECT {$originColumns} FROM {$this->origin->getName()}"
-        ] );
+        ]);
     }
 }

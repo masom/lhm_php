@@ -143,7 +143,10 @@ class Entangler extends Command
     {
         $name = $this->trigger('delete');
 
-        $primaryKey = $this->origin->getOptions()['primary_key'];
+        $primaryKey = $this->sqlHelper->extractPrimaryKey($this->origin);
+        if (empty($primaryKey)) {
+            throw new \RuntimeException("Table `{$this->origin->getName()}` does not have a primary key.");
+        }
 
         return implode("\n ", [
             "CREATE TRIGGER {$name}",

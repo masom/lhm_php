@@ -104,7 +104,7 @@ class ChunkerTest extends \PHPUnit_Framework_TestCase
         $this->adapter
             ->expects($this->once())
             ->method('query')
-            ->with('INSERT IGNORE INTO users_new (`id`,`name`) SELECT `id`,`name`,`something` FROM users');
+            ->with('INSERT IGNORE INTO users_new (`id`,`name`) SELECT users.`id`,users.`name` FROM users');
         $this->chunker->run();
     }
 
