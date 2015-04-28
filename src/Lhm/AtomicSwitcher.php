@@ -104,12 +104,17 @@ class AtomicSwitcher extends Command
 
             try {
                 foreach ($this->statements() as $statement) {
+
+                    $this->getLogger()->debug("Executing statement `{$statement}`");
+
                     $this->adapter->query($statement);
                 }
 
                 return;
             } catch (\Exception $e) {
                 if ($this->shouldRetryException($e)) {
+                    $this->getLogger()->warning($e->getMessage());
+
                     sleep($this->options['retry_sleep_time']);
 
                     //TODO log the retry
