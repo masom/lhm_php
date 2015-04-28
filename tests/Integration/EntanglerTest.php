@@ -121,36 +121,50 @@ class EntanglerTest extends \PHPUnit_Framework_TestCase
 
     public function testBefore()
     {
-        $definitions = [
-            'origin' => [
-                ['COLUMN_NAME' => 'id'],
-                ['COLUMN_NAME' => 'name'],
-                ['COLUMN_NAME' => 'something']
-            ],
-            'destination' => [
-                ['COLUMN_NAME' => 'id'],
-                ['COLUMN_NAME' => 'name'],
-                ['COLUMN_NAME' => 'content']
-            ]
+        /** @var Column[] $originColumns */
+        $originColumns = [
+            new Column(),
+            new Column(),
+            new Column()
         ];
+        $originColumns[0]->setName('id');
+        $originColumns[1]->setName('name');
+        $originColumns[2]->setName('something');
+
+        /** @var Column[] $destinationColumns */
+        $destinationColumns = [
+            new Column(),
+            new Column(),
+            new Column()
+        ];
+        $destinationColumns[0]->setName('id');
+        $destinationColumns[1]->setName('name');
+        $destinationColumns[2]->setName('something_else');
 
         $this->origin
             ->expects($this->atLeastOnce())
             ->method('getName')
             ->will($this->returnValue('users'));
 
+        $this->origin
+            ->expects($this->atLeastOnce())
+            ->method('getColumns')
+            ->will($this->returnValue($originColumns));
+
+
         $this->destination
             ->expects($this->atLeastOnce())
             ->method('getName')
             ->will($this->returnValue('users_new'));
 
+        $this->destination
+            ->expects($this->atLeastOnce())
+            ->method('getColumns')
+            ->will($this->returnValue($destinationColumns));
 
         $expectations = [
             "SELECT `COLUMN_NAME` FROM `information_schema`.`COLUMNS` WHERE (`TABLE_SCHEMA` = '') AND (`TABLE_NAME` = 'users') AND (`COLUMN_KEY` = 'PRI');",
-            "SELECT * FROM information_schema.columns WHERE table_name = 'users' AND table_schema =''",
-            "SELECT * FROM information_schema.columns WHERE table_name = 'users_new' AND table_schema =''",
-            "SELECT * FROM information_schema.columns WHERE table_name = 'users' AND table_schema =''",
-            "SELECT * FROM information_schema.columns WHERE table_name = 'users_new' AND table_schema =''",
+
             implode("\n ", [
                 'CREATE TRIGGER lhmt_delete_users',
                 'AFTER DELETE ON users FOR EACH ROW',
@@ -175,19 +189,10 @@ class EntanglerTest extends \PHPUnit_Framework_TestCase
         $this->adapter
             ->expects($matcher)
             ->method('query')
-            ->will($this->returnCallback(function ($query) use ($matcher, &$expectations, $definitions) {
+            ->will($this->returnCallback(function ($query) use ($matcher, &$expectations) {
                 $this->assertEquals($expectations[$matcher->getInvocationCount() - 1], $query);
-                switch ($matcher->getInvocationCount()) {
-                    case 1:
-                        return 'id';
-                    case 2:
-                        return $definitions['origin'];
-                    case 3:
-                        return $definitions['destination'];
-                    case 4:
-                        return $definitions['origin'];
-                    case 5:
-                        return $definitions['destination'];
+                if ($matcher->getInvocationCount() === 1) {
+                    return 'id';
                 }
             }));
 
@@ -219,19 +224,6 @@ class EntanglerTest extends \PHPUnit_Framework_TestCase
 
     public function testCreateDeleteTrigger()
     {
-        $definitions = [
-            'origin' => [
-                ['COLUMN_NAME' => 'id'],
-                ['COLUMN_NAME' => 'name'],
-                ['COLUMN_NAME' => 'something']
-            ],
-            'destination' => [
-                ['COLUMN_NAME' => 'id'],
-                ['COLUMN_NAME' => 'name'],
-                ['COLUMN_NAME' => 'content']
-            ]
-        ];
-
         $this->origin
             ->expects($this->atLeastOnce())
             ->method('getName')
@@ -243,24 +235,9 @@ class EntanglerTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue('users_new'));
 
         $this->adapter
-            ->expects($this->once())
+            ->expects( $this->once() )
             ->method('query')
             ->will($this->returnValue("id"));
-
-        $matcher = $this->atLeastOnce();
-        $this->adapter
-            ->expects($matcher)
-            ->method('query')
-            ->will($this->returnCallback(function ($query) use ($matcher, &$expectations, $definitions) {
-                switch ($matcher->getInvocationCount()) {
-                    case 1:
-                        return 'id';
-                    case 2:
-                        return $definitions['origin'];
-                    case 3:
-                        return $definitions['destination'];
-                }
-            }));
 
         $this->assertEquals(
             implode("\n ", [
@@ -275,41 +252,45 @@ class EntanglerTest extends \PHPUnit_Framework_TestCase
 
     public function testCreateInsertTrigger()
     {
-        $definitions = [
-            'origin' => [
-                ['COLUMN_NAME' => 'id'],
-                ['COLUMN_NAME' => 'name'],
-                ['COLUMN_NAME' => 'something']
-            ],
-            'destination' => [
-                ['COLUMN_NAME' => 'id'],
-                ['COLUMN_NAME' => 'name'],
-                ['COLUMN_NAME' => 'content']
-            ]
+        /** @var Column[] $originColumns */
+        $originColumns = [
+            new Column(),
+            new Column(),
+            new Column()
         ];
+        $originColumns[0]->setName('id');
+        $originColumns[1]->setName('name');
+        $originColumns[2]->setName('something');
+
+        /** @var Column[] $destinationColumns */
+        $destinationColumns = [
+            new Column(),
+            new Column(),
+            new Column()
+        ];
+        $destinationColumns[0]->setName('id');
+        $destinationColumns[1]->setName('name');
+        $destinationColumns[2]->setName('something_else');
 
         $this->origin
             ->expects($this->atLeastOnce())
             ->method('getName')
             ->will($this->returnValue('users'));
 
+        $this->origin
+            ->expects($this->atLeastOnce())
+            ->method('getColumns')
+            ->will($this->returnValue($originColumns));
+
         $this->destination
             ->expects($this->atLeastOnce())
             ->method('getName')
             ->will($this->returnValue('users_new'));
 
-        $matcher = $this->atLeastOnce();
-        $this->adapter
-            ->expects($matcher)
-            ->method('query')
-            ->will($this->returnCallback(function ($query) use ($matcher, &$expectations, $definitions) {
-                switch ($matcher->getInvocationCount()) {
-                    case 1:
-                        return $definitions['origin'];
-                    case 2:
-                        return $definitions['destination'];
-                }
-            }));
+        $this->destination
+            ->expects($this->atLeastOnce())
+            ->method('getColumns')
+            ->will($this->returnValue($destinationColumns));
 
         $this->assertEquals(
             implode("\n ", [
@@ -324,42 +305,45 @@ class EntanglerTest extends \PHPUnit_Framework_TestCase
 
     public function testCreateUpdateTrigger()
     {
-
-        $definitions = [
-            'origin' => [
-                ['COLUMN_NAME' => 'id'],
-                ['COLUMN_NAME' => 'name'],
-                ['COLUMN_NAME' => 'something']
-            ],
-            'destination' => [
-                ['COLUMN_NAME' => 'id'],
-                ['COLUMN_NAME' => 'name'],
-                ['COLUMN_NAME' => 'content']
-            ]
+        /** @var Column[] $originColumns */
+        $originColumns = [
+            new Column(),
+            new Column(),
+            new Column()
         ];
+        $originColumns[0]->setName('id');
+        $originColumns[1]->setName('name');
+        $originColumns[2]->setName('something');
+
+        /** @var Column[] $destinationColumns */
+        $destinationColumns = [
+            new Column(),
+            new Column(),
+            new Column()
+        ];
+        $destinationColumns[0]->setName('id');
+        $destinationColumns[1]->setName('name');
+        $destinationColumns[2]->setName('something_else');
 
         $this->origin
             ->expects($this->atLeastOnce())
             ->method('getName')
             ->will($this->returnValue('users'));
 
+        $this->origin
+            ->expects($this->atLeastOnce())
+            ->method('getColumns')
+            ->will($this->returnValue($originColumns));
+
         $this->destination
             ->expects($this->atLeastOnce())
             ->method('getName')
             ->will($this->returnValue('users_new'));
 
-        $matcher = $this->atLeastOnce();
-        $this->adapter
-            ->expects($matcher)
-            ->method('query')
-            ->will($this->returnCallback(function ($query) use ($matcher, &$expectations, $definitions) {
-                switch ($matcher->getInvocationCount()) {
-                    case 1:
-                        return $definitions['origin'];
-                    case 2:
-                        return $definitions['destination'];
-                }
-            }));
+        $this->destination
+            ->expects($this->atLeastOnce())
+            ->method('getColumns')
+            ->will($this->returnValue($destinationColumns));
 
         $this->assertEquals(
             implode("\n ", [
