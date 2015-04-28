@@ -17,7 +17,11 @@
     "autoload-dev": {
       "psr-4": { "Lhm\\Tests\\": "tests/" }
     },
+    "require": {
+      "psr/log": "1.0.0"
+    },
     "require-dev": {
+        "monolog/monolog": "1.*",
         "phpunit/phpunit": "4.6.4",
         "robmorgan/phinx": "0.4.*"
     }
