@@ -6,6 +6,13 @@
 
 This is a PHP port of https://github.com/soundcloud/lhm
 
+### TODO
+- [ ] [SqlHelper] Support column renames
+- [ ] [LHM] Support cleanup
+- [ ] [Chunker] Support data limits/filtering
+- [ ] [Switchers] Locked switcher
+- [ ] [LHM] Update LHM api to match soundcloud/lhm ( `options`, breaking )
+- [ ] add index / remove index
 
 ### Usage
 ```php
