@@ -17,7 +17,8 @@ class HybridPhinxMigration extends AbstractMigration
             ->addColumn('location', 'string', ['null' => true, 'length' => 255, 'default' => 'Canada'])
             ->save();
 
-        Lhm::changeTable($this, 'ponies', function (Table $ponies) {
+        Lhm::setAdapter($this->getAdapter());
+        Lhm::changeTable('ponies', function (Table $ponies) {
             $ponies
                 ->addColumn('age', 'integer', ['null' => true])
                 ->save();

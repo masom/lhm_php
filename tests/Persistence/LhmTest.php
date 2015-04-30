@@ -64,4 +64,20 @@ class LhmTest extends AbstractPersistenceTest
         $this->assertEquals(null, $age);
         $this->assertEquals('Canada', $location);
     }
+
+    public function testCleanup()
+    {
+        $this->adapter->query('CREATE TABLE derp(id INT PRIMARY KEY);');
+        $this->adapter->query('CREATE TABLE lhma_2014_03_04_13_22_33_test(id INT PRIMARY KEY);');
+        $this->adapter->query(implode("\n ", [
+            'CREATE TRIGGER lhmt_update_users',
+            'AFTER UPDATE ON derp FOR EACH ROW',
+            'REPLACE INTO derp (`id`) /* large hadron migration (php) */',
+            'VALUES (NEW.`id`)'
+        ]));
+
+        Lhm::setLogger(new \Monolog\Logger('test', [new \Monolog\Handler\StreamHandler('php://stdout')]));
+        Lhm::setAdapter($this->adapter);
+        Lhm::cleanup(true);
+    }
 }
