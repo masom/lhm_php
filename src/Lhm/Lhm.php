@@ -129,6 +129,11 @@ class Lhm
         }
         unset($trigger);
 
+        if (empty($lhmTables) && empty($lhmTriggers)) {
+            $logger->info("Everything is clean. Nothing to do.");
+            return true;
+        }
+
         if ($run) {
             $adapter = static::$adapter;
 
@@ -145,14 +150,11 @@ class Lhm
             }
 
             return true;
-        } elseif (empty($lhmTables) && empty($lhmTriggers)) {
-            $logger->info("Everything is clean. Nothing to do.");
-            return true;
         } else {
             $tables = implode(", ", $lhmTables);
             $triggers = implode(", ", $lhmTriggers);
-            $logger->info("Existing LHM backup tables: {$tables}.");
-            $logger->info("Existing LHM triggers: {$triggers}.");
+            $logger->info("Existing LHM backup tables: {$tables}");
+            $logger->info("Existing LHM triggers: {$triggers}");
             $logger->info('Run Lhm::cleanup(true) to drop them all.');
             return false;
         }

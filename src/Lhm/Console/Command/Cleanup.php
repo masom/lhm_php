@@ -98,11 +98,14 @@ class Cleanup extends AbstractCommand
             $output->writeln('<warning>LHM will drop archives created before ' . $until->format('Y-M-D H:i:s T') . '</warning>');
         }
 
-        if (!$input->getOption('quiet')) {
-            $logger = new Logger('lhm');
-            $logger->pushHandler(new ConsoleHandler($output));
-            Lhm::setLogger($logger);
-        }
+
+        $output->setVerbosity(OutputInterface::VERBOSITY_VERY_VERBOSE);
+        $handler = new ConsoleHandler($output);
+
+        $logger = new Logger('lhm');
+        $logger->pushHandler($handler);
+
+        Lhm::setLogger($logger);
 
         $environment = $this->manager->getEnvironment($environment);
 
