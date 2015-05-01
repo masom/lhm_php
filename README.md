@@ -11,7 +11,7 @@ This is a PHP port of https://github.com/soundcloud/lhm
 - [x] [LHM] Support cleanup
 - [ ] [Chunker] data limits/filtering
 - [ ] [Chunker] throttle
-- [ ] [Switchers] Locked switcher
+- [x] [Switchers] Locked switcher
 - [ ] [LHM] Update LHM api to match soundcloud/lhm ( `options`, breaking )
 - [ ] add index / remove index
 
