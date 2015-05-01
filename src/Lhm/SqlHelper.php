@@ -42,9 +42,10 @@ class SqlHelper
      */
     public function versionString()
     {
+        /** @var \PDOStatement $data */
         $data = $this->adapter->query("show variables like 'version'");
 
-        return $data[0];
+        return $data->fetchColumn(1);
     }
 
     /**

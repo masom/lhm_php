@@ -156,7 +156,16 @@ class SqlHelperTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnCallback(function () use ($matcherIterator) {
                 $value = $matcherIterator->current();
                 $matcherIterator->next();
-                return [$value];
+
+                $mock = $this->getMockBuilder(\stdClass::class)
+                    ->setMethods(['fetchColumn'])
+                    ->disableOriginalConstructor()
+                    ->getMock();
+
+                $mock->expects($this->once())
+                    ->method('fetchColumn')
+                    ->will($this->returnValue($value));
+                return $mock;
             }));
 
         foreach ($expectedIterator as $version => $expected) {
@@ -166,11 +175,19 @@ class SqlHelperTest extends \PHPUnit_Framework_TestCase
 
     public function testVersionString()
     {
+        $mock = $this->getMockBuilder(\stdClass::class)
+            ->setMethods(['fetchColumn'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mock->expects($this->once())
+            ->method('fetchColumn')
+            ->will($this->returnValue("3.0.2"));
+
         $this->adapter
             ->expects($this->once())
             ->method('query')
             ->with("show variables like 'version'")
-            ->will($this->returnValue(["3.0.2"]));
+            ->will($this->returnValue($mock));
 
         $this->assertEquals("3.0.2", $this->helper->versionString());
     }

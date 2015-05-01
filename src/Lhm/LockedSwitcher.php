@@ -65,11 +65,17 @@ class LockedSwitcher extends Command
     /**
      * @return array
      */
+    public function getOptions()
+    {
+        return $this->options;
+    }
+
+    /**
+     * @return array
+     */
     protected function statements()
     {
-        return $this->uncommitted(function () {
-            $this->switchStatements();
-        });
+        return $this->uncommitted($this->switchStatements());
     }
 
     /**
@@ -92,17 +98,17 @@ class LockedSwitcher extends Command
     }
 
     /**
-     * @param callable $wrapped
+     * @param array $switchStatements
      * @return array
      */
-    protected function uncommitted(callable $wrapped)
+    protected function uncommitted($switchStatements)
     {
         $statements = [
             'set @lhm_auto_commit = @@session.autocommit',
             'set session autocommit = 0'
         ];
 
-        $statements = array_merge($statements, $wrapped());
+        $statements = array_merge($statements, $switchStatements);
 
         $statements[] = 'set session autocommit = @lhm_auto_commit';
         return $statements;

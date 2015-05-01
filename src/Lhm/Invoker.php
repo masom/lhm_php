@@ -52,7 +52,7 @@ class Invoker
      */
     public function __construct(AdapterInterface $adapter, Table $origin, array $options = [])
     {
-        $this->options = $options + ['atomic_switch' => true];
+        $this->options = $options;
         $this->adapter = $adapter;
         $this->origin = $origin;
     }
@@ -86,13 +86,27 @@ class Invoker
      */
     public function execute(callable $migration)
     {
+        $this->logger->info("Starting LHM run on table={$this->origin->getName()}");
+
+        $sqlHelper = new SqlHelper($this->adapter);
+
+        if (!isset($options['atomic_switch'])) {
+
+            if ($sqlHelper->supportsAtomicSwitch()) {
+                $this->options['atomic_switch'] = true;
+            } else {
+                $version = $sqlHelper->versionString();
+                throw new \RuntimeException("Using mysql {$version}. You must explicitly set `options['atomic_switch']` (re SqlHelper::supportsAtomicSwitch)");
+            }
+
+        }
+
         if (!$this->destination) {
             $this->destination = $this->temporaryTable();
         }
 
         $this->setSessionLockWaitTimeouts();
 
-        $sqlHelper = new SqlHelper($this->adapter);
 
         $entangler = new Entangler($this->adapter, $this->origin, $this->destination, $sqlHelper);
         $entangler->setLogger($this->logger);
