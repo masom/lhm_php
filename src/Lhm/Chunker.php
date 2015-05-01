@@ -57,7 +57,7 @@ class Chunker extends Command
         $this->destination = $destination;
         $this->sqlHelper = $sqlHelper ?: new SqlHelper($this->adapter);
 
-        $this->options = $options + ['stride' => 500];
+        $this->options = $options + ['stride' => 2000];
 
         $this->primaryKey = $this->adapter->quoteColumnName($this->sqlHelper->extractPrimaryKey($this->origin));
 

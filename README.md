@@ -34,7 +34,8 @@ class DropLargeColumns extends AbstractMigration
          * $logger = new Monolog\Logger('test', [new \Monolog\Handler\StreamHandler('php://stdout')]);
          * \Lhm\Lhm::setLogger($logger);
          */
-        \Lhm\Lhm::changeTable($this, 'characters', function (Phinx\Db\Table $table) {
+        \Lhm\Lhm::setAdapter($this->getAdapter());
+        \Lhm\Lhm::changeTable('characters', function (Phinx\Db\Table $table) {
             $table
                 ->removeColumn('alternate_name')
                 ->removeColumn('alternate_bio')
@@ -48,7 +49,8 @@ class DropLargeColumns extends AbstractMigration
      */
     public function down()
     {
-        \Lhm\Lhm::changeTable($this, 'characters', function (Phinx\Db\Table $table) {
+        \Lhm\Lhm::setAdapter($this->getAdapter());
+        \Lhm\Lhm::changeTable('characters', function (Phinx\Db\Table $table) {
             $table
                 ->addColumn('alternate_name', 'string', ['limit' => 255, 'null' => true, 'default' => null])
                 ->addColumn('alternate_bio', 'string', ['limit' => 255, 'null' => true, 'default' => null])
