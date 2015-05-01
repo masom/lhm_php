@@ -1,35 +1,24 @@
 <?php
 
+
 namespace Lhm;
 
-use Phinx\Db\Table;
+
 use Phinx\Db\Adapter\AdapterInterface;
+use Phinx\Db\Table;
 
-/**
- * Switched the origin table with the destination using an atomic rename.
- */
-class AtomicSwitcher extends Command
+class LockedSwitcher extends Command
 {
-
-    /**
-     * @var AdapterInterface
-     */
+    /** @var AdapterInterface */
     protected $adapter;
-
-    /**
-     * @var Table
-     */
+    /** @var Table */
     protected $origin;
-
-    /**
-     * @var Table
-     */
+    /** @var Table */
     protected $destination;
-
     /**
-     * @var array
+     * @var SqlHelper
      */
-    protected $options;
+    protected $sqlHelper;
 
     /**
      * @param AdapterInterface $adapter
@@ -54,21 +43,23 @@ class AtomicSwitcher extends Command
     }
 
     /**
-     * @return array
+     * @return SqlHelper
      */
-    public function getOptions()
+    public function getSqlHelper()
     {
-        return $this->options;
+        if (!$this->sqlHelper) {
+            $this->sqlHelper = new SqlHelper($this->adapter);
+        }
+
+        return $this->sqlHelper;
     }
 
     /**
-     * Set an option
-     * @param string $name
-     * @param mixed $value
+     * @param SqlHelper $sqlHelper
      */
-    public function setOption($name, $value)
+    public function setSqlHelper($sqlHelper)
     {
-        $this->options[$name] = $value;
+        $this->sqlHelper = $sqlHelper;
     }
 
     /**
@@ -76,14 +67,45 @@ class AtomicSwitcher extends Command
      */
     protected function statements()
     {
+        return $this->uncommitted(function () {
+            $this->switchStatements();
+        });
+    }
+
+    /**
+     * @return array
+     */
+    protected function switchStatements()
+    {
         $originTableName = $this->adapter->quoteTableName($this->origin->getName());
         $destinationTableName = $this->adapter->quoteTableName($this->destination->getName());
 
         $archiveName = $this->adapter->quoteTableName($this->options['archive_name']);
 
         return [
-            "RENAME TABLE {$originTableName} TO {$archiveName}, {$destinationTableName} TO {$originTableName}",
+            "LOCK TABLE {$originTableName} write, {$destinationTableName} write",
+            "ALTER TABLE  {$originTableName} rename {$archiveName}",
+            "ALTER TABLE {$destinationTableName} rename {$originTableName}",
+            'COMMIT',
+            'UNLOCK TABLES'
         ];
+    }
+
+    /**
+     * @param callable $wrapped
+     * @return array
+     */
+    protected function uncommitted(callable $wrapped)
+    {
+        $statements = [
+            'set @lhm_auto_commit = @@session.autocommit',
+            'set session autocommit = 0'
+        ];
+
+        $statements = array_merge($statements, $wrapped());
+
+        $statements[] = 'set session autocommit = @lhm_auto_commit';
+        return $statements;
     }
 
     /**
@@ -98,46 +120,24 @@ class AtomicSwitcher extends Command
         throw new \RuntimeException("Table `{$this->origin->getName()}` and `{$this->destination->getName()}` must exist.");
     }
 
+    /**
+     * Revert the switch
+     */
+    protected function revert()
+    {
+        $this->adapter->query($this->getSqlHelper()->tagged('unlock tables'));
+    }
 
     /**
-     * Execute the atomic rename.
+     * Execute the switch
      */
     protected function execute()
     {
-        $retries = 0;
-
-        while ($retries < $this->options['max_retries']) {
-            $retries++;
-
-            try {
-                foreach ($this->statements() as $statement) {
-
-                    $this->getLogger()->debug("Executing statement `{$statement}`");
-
-                    $this->adapter->query($statement);
-                }
-
-                return;
-            } catch (\Exception $e) {
-                if ($this->shouldRetryException($e)) {
-                    $this->getLogger()->warning($e->getMessage());
-
-                    sleep($this->options['retry_sleep_time']);
-
-                    //TODO log the retry
-                    continue;
-                }
-
-                throw $e;
-            }
+        $sqlHelper = $this->getSqlHelper();
+        foreach ($this->statements() as $statement) {
+            $this->adapter->query($sqlHelper->tagged($statement));
         }
     }
 
-    /**
-     * Determine if the operation should be retried.
-     */
-    protected function shouldRetryException(\Exception $e)
-    {
-        return preg_match('/Lock wait timeout exceeded/', $e->getMessage());
-    }
+
 }

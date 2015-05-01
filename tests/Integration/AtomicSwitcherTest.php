@@ -68,9 +68,16 @@ class AtomicSwitcherTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValueMap([['users', true], ['users_new', true]]));
 
         $this->adapter
+            ->expects($this->atLeastOnce())
+            ->method('quoteTableName')
+            ->will($this->returnCallback(function ($name) {
+                return "`{$name}`";
+            }));
+
+        $this->adapter
             ->expects($this->once())
             ->method('query')
-            ->with('RENAME TABLE users TO users_archive, users_new TO users');
+            ->with('RENAME TABLE `users` TO `users_archive`, `users_new` TO `users`');
 
         $this->origin
             ->expects($this->atLeastOnce())
