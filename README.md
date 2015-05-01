@@ -61,6 +61,33 @@ class DropLargeColumns extends AbstractMigration
 }
 ```
 
+### Cleanup
+If there is an error while LHM is running a few triggers and tables might be left in the database.
+
+`bin/lhm` command will let you clean your database.
+
+It executes a dry-run unless the `--run` option is specified.
+
+
+```
+Large Hadron Migrator version 0.3.0
+
+Usage:
+ cleanup [-c|--configuration="..."] [-p|--parser="..."] [-e|--environment="..."] [-r|--run] [-u|--until="..."]
+
+Options:
+ --configuration (-c)  The configuration file to load
+ --parser (-p)         Parser used to read the config file. Defaults to YAML
+ --environment (-e)    The target environment
+ --run (-r)            Apply the cleanup operations.
+ --until (-u)          Drop archive tables older than the specified date at UTC (YYYY-MM-DD_hh:mm:ss).
+ --help (-h)           Display this help message
+ --quiet (-q)          Do not output any message
+
+Help:
+
+ Cleanup LHM tables, old archives and triggers. Defaults to a dry-run unless --run is specified.
+```
 
 ### AWS Considerations
 
