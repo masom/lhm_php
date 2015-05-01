@@ -42,7 +42,7 @@ class AtomicSwitcher extends Command
         $this->options = $options + [
                 'retry_sleep_time' => 10,
                 'max_retries' => 600,
-                'archive_name' => "{$origin->getName()}_" . gmdate('Y_m_d_H_i_s')
+                'archive_name' => 'lhma_' . gmdate('Y_m_d_H_i_s') . "_{$origin->getName()}"
             ];
 
         $this->adapter = $adapter;

@@ -2,8 +2,8 @@
 
 namespace Lhm;
 
+use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Table;
-use Phinx\Migration\MigrationInterface;
 use Psr\Log\LoggerInterface;
 
 
@@ -11,11 +11,6 @@ class Invoker
 {
 
     const LOCK_WAIT_TIMEOUT_DELTA = -2;
-
-    /**
-     * @var MigrationInterface
-     */
-    protected $migration;
 
     /**
      * @var Table
@@ -37,16 +32,19 @@ class Invoker
      */
     protected $logger;
 
+    /** @var  AdapterInterface */
+    protected $adapter;
+
     /**
-     * @param MigrationInterface $migration
+     * @param AdapterInterface $adapter
      * @param Table $origin
      * @param array $options
      */
-    public function __construct(MigrationInterface $migration, Table $origin, array $options = [])
+    public function __construct(AdapterInterface $adapter, Table $origin, array $options = [])
     {
-        $this->options = $options + ['entangler' => true, 'temporary_table_suffix' => '_new'];
+        $this->options = $options + ['entangler' => true];
 
-        $this->migration = $migration;
+        $this->adapter = $adapter;
         $this->origin = $origin;
     }
 
@@ -89,23 +87,21 @@ class Invoker
             $this->destination = $this->temporaryTable();
         }
 
-        $adapter = $this->migration->getAdapter();
-
         $this->setSessionLockWaitTimeouts();
 
-        $entangler = new Entangler($adapter, $this->origin, $this->destination);
+        $entangler = new Entangler($this->adapter, $this->origin, $this->destination);
         $entangler->setLogger($this->logger);
 
-        $switcher = new AtomicSwitcher($adapter, $this->origin, $this->destination);
+        $switcher = new AtomicSwitcher($this->adapter, $this->origin, $this->destination);
         $switcher->setLogger($this->logger);
 
-        $chunker = new Chunker($adapter, $this->origin, $this->destination);
+        $chunker = new Chunker($this->adapter, $this->origin, $this->destination);
         $chunker->setLogger($this->logger);
 
         //TODO Should \Phinx\Db\Table be wrapped to support removeColumn like LHM does?
         $migration($this->temporaryTable());
 
-        $entangler->run(function () use ($chunker, $switcher, $migration) {
+        $entangler->run(function () use ($chunker, $switcher) {
             $chunker->run();
             $switcher->run();
         });
@@ -113,14 +109,12 @@ class Invoker
 
     protected function setSessionLockWaitTimeouts()
     {
-        $adapter = $this->migration->getAdapter();
-
         $logger = $this->getLogger();
         $logger->debug("Getting mysql session lock wait timeouts");
 
         //TODO File a bug with Phinx. $adapter->query does not return an array ( returns a PDOStatement )
-        $globalInnodbLockWaitTimeout = $adapter->query("SHOW GLOBAL VARIABLES LIKE 'innodb_lock_wait_timeout'")->fetchColumn(0);
-        $globalLockWaitTimeout = $adapter->query("SHOW GLOBAL VARIABLES LIKE 'lock_wait_timeout'")->fetchColumn(0);
+        $globalInnodbLockWaitTimeout = $this->adapter->query("SHOW GLOBAL VARIABLES LIKE 'innodb_lock_wait_timeout'")->fetchColumn(0);
+        $globalLockWaitTimeout = $this->adapter->query("SHOW GLOBAL VARIABLES LIKE 'lock_wait_timeout'")->fetchColumn(0);
 
 
         if ($globalInnodbLockWaitTimeout) {
@@ -128,7 +122,7 @@ class Invoker
 
             $logger->debug("Setting session innodb_lock_wait_timeout to `{$value}`");
 
-            $adapter->query("SET SESSION innodb_lock_wait_timeout={$value}");
+            $this->adapter->query("SET SESSION innodb_lock_wait_timeout={$value}");
         }
 
         if ($globalLockWaitTimeout) {
@@ -136,7 +130,7 @@ class Invoker
 
             $logger->debug("Setting session lock_wait_timeout to `{$value}`");
 
-            $adapter->query("SET SESSION lock_wait_timeout={$value}");
+            $this->adapter->query("SET SESSION lock_wait_timeout={$value}");
         }
     }
 
@@ -152,18 +146,16 @@ class Invoker
             return $this->destination;
         }
 
-        $adapter = $this->migration->getAdapter();
-
         $temporaryTableName = $this->temporaryTableName();
 
-        if ($adapter->hasTable($temporaryTableName)) {
+        if ($this->adapter->hasTable($temporaryTableName)) {
             throw new \RuntimeException("The table `{$temporaryTableName}` already exists.");
         }
 
         $this->getLogger()->info("Creating temporary table `{$temporaryTableName}` from `{$this->origin->getName()}`");
-        $adapter->query("CREATE TABLE {$temporaryTableName} LIKE {$this->origin->getName()}");
+        $this->adapter->query("CREATE TABLE {$temporaryTableName} LIKE {$this->origin->getName()}");
 
-        return $this->migration->table($temporaryTableName, [], $adapter);
+        return new Table($temporaryTableName, [], $this->adapter);
     }
 
     /**
@@ -172,6 +164,6 @@ class Invoker
      */
     public function temporaryTableName()
     {
-        return "{$this->origin->getName()}{$this->options['temporary_table_suffix']}";
+        return "lhmn_{$this->origin->getName()}";
     }
 }
