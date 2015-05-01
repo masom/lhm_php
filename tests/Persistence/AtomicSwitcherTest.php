@@ -40,7 +40,7 @@ class AtomicSwitcherTest extends AbstractPersistenceTest
         $migration->setAdapter($this->adapter);
         $migration->up();
 
-        $invoker = new Invoker($migration, $this->origin);
+        $invoker = new Invoker($this->adapter, $this->origin);
 
         $this->destination = $invoker->temporaryTable();
         $this->switcher = new AtomicSwitcher($this->adapter, $this->origin, $this->destination);

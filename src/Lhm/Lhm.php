@@ -6,7 +6,6 @@ namespace Lhm;
 
 use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Table;
-use Phinx\Migration\MigrationInterface;
 use Psr\Log\LoggerInterface;
 
 class Lhm
@@ -19,6 +18,9 @@ class Lhm
      */
     protected static $adapter;
 
+    /**
+     * @param LoggerInterface $logger
+     */
     public static function setLogger(LoggerInterface $logger)
     {
         static::$logger = $logger;
@@ -65,8 +67,13 @@ class Lhm
     }
 
     /**
-     * @param bool $run
+     * Cleanup LHM temporary tables, old archives and triggers.
+     *
+     * @param bool $run When set to `false` the cleanup operations will not be executed. ( dry-run )
      * @param array $options
+     *                      - `until` \DateTime Archives older than this date will be deleted.
+     *
+     * @return bool
      */
     public static function cleanup($run = false, array $options = [])
     {
