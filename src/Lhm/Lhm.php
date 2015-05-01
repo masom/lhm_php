@@ -54,6 +54,17 @@ class Lhm
      * @param $name
      * @param callable $operations
      * @param array $options
+     *                      - `stride` integer
+     *                          Size of a chunk (defaults to 2000)
+     *                      - `atomic_switch` boolean
+     *                          Enable atomic switching (defaults to true)
+     *                      - `retry_sleep_time` integer
+     *                          How long should the switch wait until retrying ( defaults to 10 )
+     *                      - `max_retries` integer
+     *                          How many times the switch should be attempted ( defaults to 600 )
+     *                      - `archive_name` string
+     *                          Name of the archive table ( defaults to 'lhma_' . gmdate('Y_m_d_H_i_s') . "_{$origin->getName()}" )
+     *
      */
     public static function changeTable($name, callable $operations, array $options = [])
     {

@@ -4,15 +4,15 @@
 namespace Lhm\Tests\Integration;
 
 
-use Lhm\AtomicSwitcher;
+use Lhm\LockedSwitcher;
 use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Table;
 
-class AtomicSwitcherTest extends \PHPUnit_Framework_TestCase
+class LockedSwitcherTest extends \PHPUnit_Framework_TestCase
 {
 
     /**
-     * @var AtomicSwitcher
+     * @var LockedSwitcher
      */
     protected $switcher;
     /**
@@ -42,7 +42,7 @@ class AtomicSwitcherTest extends \PHPUnit_Framework_TestCase
         $this->origin = $this->getMockBuilder(Table::class)->disableOriginalConstructor()->getMock();
         $this->destination = $this->getMockBuilder(Table::class)->disableOriginalConstructor()->getMock();
 
-        $this->switcher = new AtomicSwitcher(
+        $this->switcher = new LockedSwitcher(
             $this->adapter,
             $this->origin,
             $this->destination,
@@ -74,10 +74,23 @@ class AtomicSwitcherTest extends \PHPUnit_Framework_TestCase
                 return "`{$name}`";
             }));
 
+        $expected = [
+            "set @lhm_auto_commit = @@session.autocommit /* large hadron migration (php) */",
+            "set session autocommit = 0 /* large hadron migration (php) */",
+            "LOCK TABLE `users` write, `users_new` write /* large hadron migration (php) */",
+            "ALTER TABLE  `users` rename `users_archive` /* large hadron migration (php) */",
+            "ALTER TABLE `users_new` rename `users` /* large hadron migration (php) */",
+            "COMMIT /* large hadron migration (php) */",
+            "UNLOCK TABLES /* large hadron migration (php) */",
+            "set session autocommit = @lhm_auto_commit /* large hadron migration (php) */"
+        ];
+        $matcher = $this->any();
         $this->adapter
-            ->expects($this->once())
+            ->expects($matcher)
             ->method('query')
-            ->with('RENAME TABLE `users` TO `users_archive`, `users_new` TO `users`');
+            ->will($this->returnCallback(function ($query) use ($matcher, $expected) {
+                $this->assertEquals($expected[$matcher->getInvocationCount() - 1], $query);
+            }));
 
         $this->origin
             ->expects($this->atLeastOnce())

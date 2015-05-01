@@ -39,11 +39,20 @@ class Invoker
      * @param AdapterInterface $adapter
      * @param Table $origin
      * @param array $options
+     *                      - `stride` integer
+     *                          Size of a chunk (defaults to 2000)
+     *                      - `atomic_switch` boolean
+     *                          Enable atomic switching (defaults to true)
+     *                      - `retry_sleep_time` integer
+     *                          How long should the switch wait until retrying ( defaults to 10 )
+     *                      - `max_retries` integer
+     *                          How many times the switch should be attempted ( defaults to 600 )
+     *                      - `archive_name` string
+     *                          Name of the archive table ( defaults to 'lhma_' . gmdate('Y_m_d_H_i_s') . "_{$origin->getName()}" )
      */
     public function __construct(AdapterInterface $adapter, Table $origin, array $options = [])
     {
-        $this->options = $options + ['entangler' => true];
-
+        $this->options = $options;
         $this->adapter = $adapter;
         $this->origin = $origin;
     }
@@ -77,10 +86,19 @@ class Invoker
      */
     public function execute(callable $migration)
     {
-        if (!$this->options['entangler']) {
-            $this->getLogger()->warning("Executing migration in-place.");
-            $migration($this->origin);
-            return;
+        $this->logger->info("Starting LHM run on table={$this->origin->getName()}");
+
+        $sqlHelper = new SqlHelper($this->adapter);
+
+        if (!isset($options['atomic_switch'])) {
+
+            if ($sqlHelper->supportsAtomicSwitch()) {
+                $this->options['atomic_switch'] = true;
+            } else {
+                $version = $sqlHelper->versionString();
+                throw new \RuntimeException("Using mysql {$version}. You must explicitly set `options['atomic_switch']` (re SqlHelper::supportsAtomicSwitch)");
+            }
+
         }
 
         if (!$this->destination) {
@@ -89,16 +107,21 @@ class Invoker
 
         $this->setSessionLockWaitTimeouts();
 
-        $entangler = new Entangler($this->adapter, $this->origin, $this->destination);
+
+        $entangler = new Entangler($this->adapter, $this->origin, $this->destination, $sqlHelper);
         $entangler->setLogger($this->logger);
 
-        $switcher = new AtomicSwitcher($this->adapter, $this->origin, $this->destination);
+        if ($this->options['atomic_switch']) {
+            $switcher = new AtomicSwitcher($this->adapter, $this->origin, $this->destination, $this->options);
+        } else {
+            $switcher = new LockedSwitcher($this->adapter, $this->origin, $this->destination, $this->options);
+        }
+
         $switcher->setLogger($this->logger);
 
-        $chunker = new Chunker($this->adapter, $this->origin, $this->destination);
+        $chunker = new Chunker($this->adapter, $this->origin, $this->destination, $sqlHelper, $this->options);
         $chunker->setLogger($this->logger);
 
-        //TODO Should \Phinx\Db\Table be wrapped to support removeColumn like LHM does?
         $migration($this->temporaryTable());
 
         $entangler->run(function () use ($chunker, $switcher) {

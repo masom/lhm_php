@@ -49,6 +49,9 @@ class Chunker extends Command
      * @param Table $origin
      * @param Table $destination
      * @param SqlHelper $sqlHelper
+     * @param array $options
+     *                      - `stride`
+     *                          Size of chunk ( defaults to 2000 )
      */
     public function __construct(AdapterInterface $adapter, Table $origin, Table $destination, SqlHelper $sqlHelper = null, array $options = [])
     {
