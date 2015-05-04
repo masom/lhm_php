@@ -5,15 +5,17 @@ namespace Lhm;
 
 
 use Phinx\Db\Adapter\AdapterInterface;
-use Phinx\Db\Table;
+
 
 class LockedSwitcher extends Command
 {
     /** @var AdapterInterface */
     protected $adapter;
-    /** @var Table */
+
+    /** @var \Phinx\Db\Table */
     protected $origin;
-    /** @var Table */
+
+    /** @var \Lhm\Table */
     protected $destination;
     /**
      * @var SqlHelper
@@ -22,14 +24,14 @@ class LockedSwitcher extends Command
 
     /**
      * @param AdapterInterface $adapter
-     * @param Table $origin
-     * @param Table $destination
+     * @param \Phinx\Db\Table $origin
+     * @param \Lhm\Table $destination
      * @param array $options Table options:
      *                      - `retry_sleep_time`
      *                      - `max_retries`
      *                      - `archive_name`
      */
-    public function __construct(AdapterInterface $adapter, Table $origin, Table $destination, array $options = [])
+    public function __construct(AdapterInterface $adapter, \Phinx\Db\Table $origin, \Lhm\Table $destination, array $options = [])
     {
         $this->options = $options + [
                 'retry_sleep_time' => 10,

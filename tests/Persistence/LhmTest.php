@@ -12,6 +12,7 @@ use Phinx\Db\Table;
 use Phinx\Migration\Manager\Environment;
 use Phinx\Migration\MigrationInterface;
 use Lhm\Tests\Persistence\Migrations\IndexMigration;
+use Lhm\Tests\Persistence\Migrations\RenameMigration;
 
 
 class LhmTest extends AbstractPersistenceTest
@@ -150,5 +151,17 @@ class LhmTest extends AbstractPersistenceTest
                 }
             }
         }
+    }
+
+    public function testRenameColumn()
+    {
+        $time = time();
+        $this->environment->executeMigration(new InitialMigration($time - 1), MigrationInterface::UP);
+
+        $this->assertNotEmpty($this->adapter->fetchAll("SELECT * FROM ponies WHERE name IS NOT NULL"));
+
+        $this->environment->executeMigration(new RenameMigration($time), MigrationInterface::UP);
+
+        $this->assertEmpty($this->adapter->fetchAll("SELECT * FROM ponies WHERE first_name IS NULL"));
     }
 }

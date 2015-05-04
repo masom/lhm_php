@@ -6,7 +6,6 @@ namespace Lhm\Tests\Integration;
 
 use Lhm\LockedSwitcher;
 use Phinx\Db\Adapter\AdapterInterface;
-use Phinx\Db\Table;
 
 class LockedSwitcherTest extends \PHPUnit_Framework_TestCase
 {
@@ -39,8 +38,8 @@ class LockedSwitcherTest extends \PHPUnit_Framework_TestCase
                 return "`{$name}`";
             }));
 
-        $this->origin = $this->getMockBuilder(Table::class)->disableOriginalConstructor()->getMock();
-        $this->destination = $this->getMockBuilder(Table::class)->disableOriginalConstructor()->getMock();
+        $this->origin = $this->getMockBuilder(\Phinx\Db\Table::class)->disableOriginalConstructor()->getMock();
+        $this->destination = $this->getMockBuilder(\Lhm\Table::class)->disableOriginalConstructor()->getMock();
 
         $this->switcher = new LockedSwitcher(
             $this->adapter,

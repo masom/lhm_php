@@ -7,7 +7,6 @@ namespace Lhm\Tests\Persistence;
 use Lhm\LockedSwitcher;
 use Lhm\Invoker;
 use Lhm\Tests\Persistence\Migrations\InitialMigration;
-use Phinx\Db\Table;
 
 /**
  * @see https://github.com/soundcloud/lhm/blob/b8819c550b1b471b563036276bbfffe5c990777d/lib/lhm/locked_switcher.rb#L9
@@ -36,7 +35,7 @@ class LockedSwitcherTest extends AbstractPersistenceTest
      */
     protected $origin;
     /**
-     * @var Table
+     * @var \Lhm\Table
      */
     protected $destination;
 
@@ -47,7 +46,7 @@ class LockedSwitcherTest extends AbstractPersistenceTest
         $this->adapter->execute("SET GLOBAL innodb_lock_wait_timeout=3");
         $this->adapter->execute("SET GLOBAL lock_wait_timeout=3");
 
-        $this->origin = new Table('ponies');
+        $this->origin = new \Phinx\Db\Table('ponies');
 
 
         $migration = new InitialMigration(time());

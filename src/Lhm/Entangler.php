@@ -2,7 +2,6 @@
 
 namespace Lhm;
 
-use Phinx\Db\Table;
 use Phinx\Db\Adapter\AdapterInterface;
 
 /**
@@ -32,19 +31,25 @@ class Entangler extends Command
      */
     protected $sqlHelper;
 
+    /**
+     * @var Intersection
+     */
+    protected $intersection;
 
     /**
      * @param AdapterInterface $adapter
-     * @param Table $origin
+     * @param \Phinx\Db\Table $origin
      * @param Table $destination
      * @param SqlHelper $sqlHelper
+     * @param Intersection $intersection
      */
-    public function __construct(AdapterInterface $adapter, Table $origin, Table $destination, SqlHelper $sqlHelper = null)
+    public function __construct(AdapterInterface $adapter, \Phinx\Db\Table $origin, \Lhm\Table $destination, SqlHelper $sqlHelper = null, Intersection $intersection = null)
     {
         $this->adapter = $adapter;
         $this->origin = $origin;
         $this->destination = $destination;
         $this->sqlHelper = $sqlHelper ?: new SqlHelper($this->adapter);
+        $this->intersection = $intersection ?: new Intersection($this->origin, $this->destination);
     }
 
     /**
@@ -101,17 +106,32 @@ class Entangler extends Command
      */
     protected function createInsertTrigger()
     {
-        $intersectionColumns = $this->sqlHelper->quotedIntersectionColumns($this->origin, $this->destination);
-        $destinationColumns = implode(',', $intersectionColumns);
+        $destinationColumns = implode(
+            ',',
+            $this->sqlHelper->quoteColumns(
+                $this->intersection->destination()
+            )
+        );
 
-        $originColumns = implode(',', $this->sqlHelper->typedColumns('NEW', $intersectionColumns));
+        $originColumns = implode(
+            ',',
+            $this->sqlHelper->typedColumns(
+                'NEW',
+                $this->sqlHelper->quoteColumns(
+                    $this->intersection->origin()
+                )
+            )
+        );
 
         $name = $this->trigger('insert');
 
+        $originName = $this->adapter->quoteTableName($this->origin->getName());
+        $destinationName = $this->adapter->quoteTableName($this->destination->getName());
+
         return implode("\n ", [
             "CREATE TRIGGER {$name}",
-            "AFTER INSERT ON {$this->origin->getName()} FOR EACH ROW",
-            "REPLACE INTO {$this->destination->getName()} ({$destinationColumns}) {$this->sqlHelper->annotation()}",
+            "AFTER INSERT ON {$originName} FOR EACH ROW",
+            "REPLACE INTO {$destinationName} ({$destinationColumns}) {$this->sqlHelper->annotation()}",
             "VALUES ({$originColumns})"
         ]);
     }
@@ -121,17 +141,32 @@ class Entangler extends Command
      */
     protected function createUpdateTrigger()
     {
-        $intersectionColumns = $this->sqlHelper->quotedIntersectionColumns($this->origin, $this->destination);
-        $destinationColumns = implode(',', $intersectionColumns);
+        $destinationColumns = implode(
+            ',',
+            $this->sqlHelper->quoteColumns(
+                $this->intersection->destination()
+            )
+        );
 
-        $originColumns = implode(',', $this->sqlHelper->typedColumns('NEW', $intersectionColumns));
+        $originColumns = implode(
+            ',',
+            $this->sqlHelper->typedColumns(
+                'NEW',
+                $this->sqlHelper->quoteColumns(
+                    $this->intersection->origin()
+                )
+            )
+        );
 
         $name = $this->trigger('update');
 
+        $originName = $this->adapter->quoteTableName($this->origin->getName());
+        $destinationName = $this->adapter->quoteTableName($this->destination->getName());
+
         return implode("\n ", [
             "CREATE TRIGGER {$name}",
-            "AFTER UPDATE ON {$this->origin->getName()} FOR EACH ROW",
-            "REPLACE INTO {$this->destination->getName()} ({$destinationColumns}) {$this->sqlHelper->annotation()}",
+            "AFTER UPDATE ON {$originName} FOR EACH ROW",
+            "REPLACE INTO {$destinationName} ({$destinationColumns}) {$this->sqlHelper->annotation()}",
             "VALUES ({$originColumns})"
         ]);
     }
@@ -148,11 +183,16 @@ class Entangler extends Command
             throw new \RuntimeException("Table `{$this->origin->getName()}` does not have a primary key.");
         }
 
+        $primaryKey = $this->sqlHelper->quoteColumn($primaryKey);
+
+        $originName = $this->adapter->quoteTableName($this->origin->getName());
+        $destinationName = $this->adapter->quoteTableName($this->destination->getName());
+
         return implode("\n ", [
             "CREATE TRIGGER {$name}",
-            "AFTER DELETE ON {$this->origin->getName()} FOR EACH ROW",
-            "DELETE IGNORE FROM {$this->destination->getName()} {$this->sqlHelper->annotation()}",
-            "WHERE {$this->destination->getName()}.{$primaryKey} = OLD.{$primaryKey}"
+            "AFTER DELETE ON {$originName} FOR EACH ROW",
+            "DELETE IGNORE FROM {$destinationName} {$this->sqlHelper->annotation()}",
+            "WHERE {$destinationName}.{$primaryKey} = OLD.{$primaryKey}"
         ]);
     }
 

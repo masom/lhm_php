@@ -2,7 +2,6 @@
 
 namespace Lhm;
 
-use Phinx\Db\Table;
 use Phinx\Db\Adapter\AdapterInterface;
 
 /**
@@ -17,12 +16,12 @@ class AtomicSwitcher extends Command
     protected $adapter;
 
     /**
-     * @var Table
+     * @var \Phinx\Db\Table
      */
     protected $origin;
 
     /**
-     * @var Table
+     * @var \Lhm\Table
      */
     protected $destination;
 
@@ -40,7 +39,7 @@ class AtomicSwitcher extends Command
      *                      - `max_retries`
      *                      - `archive_name`
      */
-    public function __construct(AdapterInterface $adapter, Table $origin, Table $destination, array $options = [])
+    public function __construct(AdapterInterface $adapter, \Phinx\Db\Table $origin, \Lhm\Table $destination, array $options = [])
     {
         $this->options = $options + [
                 'retry_sleep_time' => 10,

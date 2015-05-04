@@ -5,7 +5,6 @@ namespace Lhm;
 
 
 use Phinx\Db\Adapter\AdapterInterface;
-use Phinx\Db\Table;
 use Psr\Log\LoggerInterface;
 
 class Lhm
@@ -72,7 +71,7 @@ class Lhm
             throw new \RuntimeException(__CLASS__ . ' must have an adapter set. Call ' . __CLASS__ . '::setAdapter()');
         }
 
-        $invoker = new Invoker(static::$adapter, new Table($name, [], static::getAdapter()), $options);
+        $invoker = new Invoker(static::$adapter, new \Phinx\Db\Table($name, [], static::getAdapter()), $options);
         $invoker->setLogger(static::getLogger());
         $invoker->execute($operations);
     }

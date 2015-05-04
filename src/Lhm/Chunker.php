@@ -2,7 +2,6 @@
 
 namespace Lhm;
 
-use Phinx\Db\Table;
 use Phinx\Db\Adapter\AdapterInterface;
 
 
@@ -45,15 +44,20 @@ class Chunker extends Command
     protected $options;
 
     /**
+     * @var Intersection
+     */
+    protected $intersection;
+
+    /**
      * @param AdapterInterface $adapter
-     * @param Table $origin
-     * @param Table $destination
+     * @param \Phinx\Db\Table $origin
+     * @param \Lhm\Table $destination
      * @param SqlHelper $sqlHelper
      * @param array $options
      *                      - `stride`
      *                          Size of chunk ( defaults to 2000 )
      */
-    public function __construct(AdapterInterface $adapter, Table $origin, Table $destination, SqlHelper $sqlHelper = null, array $options = [])
+    public function __construct(AdapterInterface $adapter, \Phinx\Db\Table $origin, \Lhm\Table $destination, SqlHelper $sqlHelper = null, array $options = [])
     {
         $this->adapter = $adapter;
         $this->origin = $origin;
@@ -66,6 +70,8 @@ class Chunker extends Command
 
         $this->nextToInsert = $this->start = $this->selectStart();
         $this->limit = $this->selectLimit();
+
+        $this->intersection = new Intersection($this->origin, $this->destination);
     }
 
     protected function execute()
@@ -99,14 +105,16 @@ class Chunker extends Command
 
     protected function selectStart()
     {
-        $start = $this->adapter->fetchRow("SELECT MIN(id) FROM `{$this->origin->getName()}`")[0];
+        $name = $this->adapter->quoteTableName($this->origin->getName());
+        $start = $this->adapter->fetchRow("SELECT MIN(id) FROM {$name}")[0];
 
         return (int)$start;
     }
 
     protected function selectLimit()
     {
-        $limit = $this->adapter->fetchRow("SELECT MAX(id) FROM `{$this->origin->getName()}`")[0];
+        $name = $this->adapter->quoteTableName($this->origin->getName());
+        $limit = $this->adapter->fetchRow("SELECT MAX(id) FROM {$name}")[0];
 
         return (int)$limit;
     }
@@ -118,14 +126,27 @@ class Chunker extends Command
      */
     protected function copy($lowest, $highest)
     {
-        $intersectedColumns = $this->sqlHelper->quotedIntersectionColumns($this->origin, $this->destination);
-        $destinationColumns = implode(",", $intersectedColumns);
-        $originColumns = implode(",", $this->sqlHelper->typedColumns($this->origin->getName(), $intersectedColumns));
+        $originName = $this->adapter->quoteTableName($this->origin->getName());
+        $destinationName = $this->adapter->quoteTableName($this->destination->getName());
+
+        $destinationColumns = implode(
+            ',',
+            $this->sqlHelper->quoteColumns($this->intersection->destination())
+        );
+
+        $originColumns = implode(
+            ',',
+            $this->sqlHelper->typedColumns(
+                $originName,
+                $this->sqlHelper->quoteColumns($this->intersection->origin())
+            )
+        );
+
 
         return implode(" ", [
-            "INSERT IGNORE INTO {$this->destination->getName()} ({$destinationColumns})",
-            "SELECT {$originColumns} FROM {$this->origin->getName()}",
-            "WHERE `{$this->origin->getName()}`.{$this->primaryKey} BETWEEN {$lowest} AND {$highest}"
+            "INSERT IGNORE INTO {$destinationName} ({$destinationColumns})",
+            "SELECT {$originColumns} FROM {$originName}",
+            "WHERE {$originName}.{$this->primaryKey} BETWEEN {$lowest} AND {$highest}"
         ]);
     }
 }
