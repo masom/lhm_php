@@ -3,7 +3,6 @@
 namespace Lhm;
 
 use Phinx\Db\Adapter\AdapterInterface;
-use Phinx\Db\Table;
 use Psr\Log\LoggerInterface;
 
 
@@ -50,7 +49,7 @@ class Invoker
      *                      - `archive_name` string
      *                          Name of the archive table ( defaults to 'lhma_' . gmdate('Y_m_d_H_i_s') . "_{$origin->getName()}" )
      */
-    public function __construct(AdapterInterface $adapter, Table $origin, array $options = [])
+    public function __construct(AdapterInterface $adapter, \Phinx\Db\Table $origin, array $options = [])
     {
         $this->options = $options;
         $this->adapter = $adapter;
@@ -122,7 +121,7 @@ class Invoker
         $chunker = new Chunker($this->adapter, $this->origin, $this->destination, $sqlHelper, $this->options);
         $chunker->setLogger($this->logger);
 
-        $migration($this->temporaryTable());
+        $migration($this->destination);
 
         $entangler->run(function () use ($chunker, $switcher) {
             $chunker->run();
@@ -178,7 +177,7 @@ class Invoker
         $this->getLogger()->info("Creating temporary table `{$temporaryTableName}` from `{$this->origin->getName()}`");
         $this->adapter->query("CREATE TABLE {$temporaryTableName} LIKE {$this->origin->getName()}");
 
-        return new Table($temporaryTableName, [], $this->adapter);
+        return new \Lhm\Table($temporaryTableName, [], $this->adapter);
     }
 
     /**

@@ -7,7 +7,6 @@ namespace Lhm\Tests\Integration;
 use Lhm\Chunker;
 use Lhm\SqlHelper;
 use Phinx\Db\Adapter\AdapterInterface;
-use Phinx\Db\Table;
 use Phinx\Db\Table\Column;
 
 
@@ -21,11 +20,11 @@ class ChunkerTest extends \PHPUnit_Framework_TestCase
      */
     protected $adapter;
     /**
-     * @var Table
+     * @var \Phinx\Db\Table
      */
     protected $origin;
     /**
-     * @var Table
+     * @var \Lhm\Table
      */
     protected $destination;
 
@@ -45,8 +44,15 @@ class ChunkerTest extends \PHPUnit_Framework_TestCase
                 return "`{$name}`";
             }));
 
-        $this->origin = $this->getMockBuilder(Table::class)->disableOriginalConstructor()->getMock();
-        $this->destination = $this->getMockBuilder(Table::class)->disableOriginalConstructor()->getMock();
+        $this->adapter
+            ->expects($this->any())
+            ->method('quoteTableName')
+            ->will($this->returnCallback(function ($name) {
+                return "'{$name}'";
+            }));
+
+        $this->origin = $this->getMockBuilder(\Phinx\Db\Table::class)->disableOriginalConstructor()->getMock();
+        $this->destination = $this->getMockBuilder(\Lhm\Table::class)->disableOriginalConstructor()->getMock();
 
         $this->sqlHelper = new SqlHelper($this->adapter);
     }
@@ -57,7 +63,7 @@ class ChunkerTest extends \PHPUnit_Framework_TestCase
         parent::tearDown();
     }
 
-    public function test()
+    public function testRun()
     {
         /** @var Column[] $originColumns */
         $originColumns = [
@@ -99,6 +105,11 @@ class ChunkerTest extends \PHPUnit_Framework_TestCase
             ->method('getColumns')
             ->will($this->returnValue($destinationColumns));
 
+        $this->destination
+            ->expects($this->atLeastOnce())
+            ->method('getRenamedColumns')
+            ->will($this->returnValue([]));
+
         $matcher = $this->atLeastOnce();
         $this->adapter
             ->expects($matcher)
@@ -107,14 +118,14 @@ class ChunkerTest extends \PHPUnit_Framework_TestCase
                 switch ($matcher->getInvocationCount()) {
                     case 1:
                         $this->assertEquals(
-                            'SELECT MIN(id) FROM `users`',
+                            "SELECT MIN(id) FROM 'users'",
                             $query
                         );
                         return [1];
 
                     case 2:
                         $this->assertEquals(
-                            'SELECT MAX(id) FROM `users`',
+                            "SELECT MAX(id) FROM 'users'",
                             $query
                         );
                         return [500];
@@ -140,19 +151,19 @@ class ChunkerTest extends \PHPUnit_Framework_TestCase
                         return 'id';
                     case 2:
                         $this->assertEquals(
-                            "INSERT IGNORE INTO users_new (`id`,`name`) SELECT users.`id`,users.`name` FROM users WHERE `users`.`id` BETWEEN 1 AND 200",
+                            "INSERT IGNORE INTO 'users_new' (`id`,`name`) SELECT 'users'.`id`,'users'.`name` FROM 'users' WHERE 'users'.`id` BETWEEN 1 AND 200",
                             $query
                         );
                         break;
                     case 3:
                         $this->assertEquals(
-                            "INSERT IGNORE INTO users_new (`id`,`name`) SELECT users.`id`,users.`name` FROM users WHERE `users`.`id` BETWEEN 201 AND 400",
+                            "INSERT IGNORE INTO 'users_new' (`id`,`name`) SELECT 'users'.`id`,'users'.`name` FROM 'users' WHERE 'users'.`id` BETWEEN 201 AND 400",
                             $query
                         );
                         break;
                     case 4:
                         $this->assertEquals(
-                            "INSERT IGNORE INTO users_new (`id`,`name`) SELECT users.`id`,users.`name` FROM users WHERE `users`.`id` BETWEEN 401 AND 500",
+                            "INSERT IGNORE INTO 'users_new' (`id`,`name`) SELECT 'users'.`id`,'users'.`name` FROM 'users' WHERE 'users'.`id` BETWEEN 401 AND 500",
                             $query
                         );
                         break;

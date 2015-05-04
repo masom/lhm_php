@@ -3,8 +3,6 @@
 namespace Lhm;
 
 use Phinx\Db\Adapter\AdapterInterface;
-use Phinx\Db\Table;
-use Phinx\Db\Table\Column;
 
 
 class SqlHelper
@@ -51,10 +49,10 @@ class SqlHelper
     /**
      * Extract the primary key of a table.
      *
-     * @param Table $table
+     * @param \Phinx\Db\Table $table
      * @return string
      */
-    public function extractPrimaryKey(Table $table)
+    public function extractPrimaryKey(\Phinx\Db\Table $table)
     {
         $tableName = $table->getName();
         $databaseName = $this->adapter->getOption('name');
@@ -82,7 +80,7 @@ class SqlHelper
 
     /**
      * @param string $type
-     * @param array $columns
+     * @param array $columns List of column names
      * @return array
      */
     public function typedColumns($type, array $columns)
@@ -97,32 +95,25 @@ class SqlHelper
     }
 
     /**
-     * @param Table $origin
-     * @param Table $destination
-     * @return array
+     * @param string $column
+     * @return string
      */
-    public function quotedIntersectionColumns(Table $origin, Table $destination)
+    public function quoteColumn($column)
     {
-        $originColumns = $this->quotedColumns($origin);
-        $destinationColumns = $this->quotedColumns($destination);
-
-        return array_intersect($destinationColumns, $originColumns);
+        return $this->adapter->quoteColumnName($column);
     }
 
     /**
-     * @param Table $table
-     * @return string[]
+     * @param array $columns List of column names
+     * @return array
      */
-    public function quotedColumns(Table $table)
+    public function quoteColumns(array $columns)
     {
-        $columns = [];
-
-        foreach ($table->getColumns() as $column) {
-
-            $columns[] = $this->adapter->quoteColumnName($column->getName());
+        $quoted = [];
+        foreach ($columns as $column) {
+            $quoted[] = $this->adapter->quoteColumnName($column);
         }
-
-        return $columns;
+        return $quoted;
     }
 
     /**

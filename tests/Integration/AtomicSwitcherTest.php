@@ -6,7 +6,7 @@ namespace Lhm\Tests\Integration;
 
 use Lhm\AtomicSwitcher;
 use Phinx\Db\Adapter\AdapterInterface;
-use Phinx\Db\Table;
+
 
 class AtomicSwitcherTest extends \PHPUnit_Framework_TestCase
 {
@@ -39,8 +39,8 @@ class AtomicSwitcherTest extends \PHPUnit_Framework_TestCase
                 return "`{$name}`";
             }));
 
-        $this->origin = $this->getMockBuilder(Table::class)->disableOriginalConstructor()->getMock();
-        $this->destination = $this->getMockBuilder(Table::class)->disableOriginalConstructor()->getMock();
+        $this->origin = $this->getMockBuilder(\Phinx\Db\Table::class)->disableOriginalConstructor()->getMock();
+        $this->destination = $this->getMockBuilder(\Lhm\Table::class)->disableOriginalConstructor()->getMock();
 
         $this->switcher = new AtomicSwitcher(
             $this->adapter,
