@@ -7,7 +7,7 @@
 This is a PHP port of https://github.com/soundcloud/lhm
 
 ### TODO
-- [ ] [SqlHelper] Support column renames
+- [x] [SqlHelper] Support column renames
 - [x] [LHM] Support cleanup
 - [ ] [Chunker] data limits/filtering
 - [ ] [Chunker] throttle
