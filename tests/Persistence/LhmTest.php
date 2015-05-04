@@ -11,7 +11,7 @@ use Lhm\Tests\Persistence\Migrations\LhmMigration;
 use Phinx\Db\Table;
 use Phinx\Migration\Manager\Environment;
 use Phinx\Migration\MigrationInterface;
-use tests\Persistence\AbstractPersistenceTest;
+use Lhm\Tests\Persistence\Migrations\IndexMigration;
 
 
 class LhmTest extends AbstractPersistenceTest
@@ -112,5 +112,43 @@ class LhmTest extends AbstractPersistenceTest
         $this->assertEquals('lhma_2015_03_04_13_22_33_test', $statement->fetchColumn(0));
         $this->assertEquals('phinxlog', $statement->fetchColumn(0));
         $this->assertEquals('test', $statement->fetchColumn(0));
+    }
+
+    public function testAddIndex()
+    {
+        $time = time();
+        $this->environment->executeMigration(new InitialMigration($time - 1), MigrationInterface::UP);
+        $this->environment->executeMigration(new IndexMigration($time), MigrationInterface::UP);
+
+        $exists = false;
+        $rows = $this->adapter->fetchAll(sprintf('SHOW INDEXES FROM %s', $this->adapter->quoteTableName('ponies')));
+        foreach ($rows as $row) {
+            if ($row['Key_name'] === 'ponies_age_idx') {
+                if ($row['Column_name'] === 'age' && $row['Non_unique'] === '1') {
+                    $exists = true;
+                    break;
+                }
+            }
+        }
+
+        $this->assertTrue($exists, 'The ponies_name_idx should exist.');
+    }
+
+    public function testRemoveIndex()
+    {
+        $time = time();
+        $this->environment->executeMigration(new InitialMigration($time - 1), MigrationInterface::UP);
+        $this->environment->executeMigration(new IndexMigration($time), MigrationInterface::UP);
+        $this->environment->executeMigration(new IndexMigration($time), MigrationInterface::DOWN);
+
+        $rows = $this->adapter->fetchAll(sprintf('SHOW INDEXES FROM %s', $this->adapter->quoteTableName('ponies')));
+        foreach ($rows as $row) {
+            if ($row['Key_name'] === 'ponies_age_idx') {
+                if ($row['Column_name'] === 'age' && $row['Non_unique'] === '1') {
+                    $this->fail('The ponies_age_idx should have been removed.');
+                    break;
+                }
+            }
+        }
     }
 }

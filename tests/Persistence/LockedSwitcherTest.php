@@ -1,7 +1,7 @@
 <?php
 
 
-namespace tests\Persistence;
+namespace Lhm\Tests\Persistence;
 
 
 use Lhm\LockedSwitcher;
