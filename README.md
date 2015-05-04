@@ -12,7 +12,7 @@ This is a PHP port of https://github.com/soundcloud/lhm
 - [ ] [Chunker] data limits/filtering
 - [ ] [Chunker] throttle
 - [x] [Switchers] Locked switcher
-- [ ] add index / remove index
+- [x] add index / remove index
 
 ### Usage
 ```php

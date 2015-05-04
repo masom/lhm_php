@@ -1,11 +1,12 @@
 <?php
 
 
-namespace tests\Persistence;
+namespace Lhm\Tests\Persistence;
 
 
 use Lhm\AtomicSwitcher;
 use Lhm\Invoker;
+use Lhm\Tests\Persistence\AbstractPersistenceTest;
 use Lhm\Tests\Persistence\Migrations\InitialMigration;
 use Phinx\Db\Table;
 
