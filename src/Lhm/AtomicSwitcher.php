@@ -41,7 +41,10 @@ class AtomicSwitcher extends Command
      */
     public function __construct(AdapterInterface $adapter, \Phinx\Db\Table $origin, \Lhm\Table $destination, array $options = [])
     {
-        $micro = explode('.', microtime(true));
+        // 0.234234234 234234234 -> [0.2323232 => 232322323]
+        $micro = explode(' ', microtime());
+        // 0.232323232 -> [0, 23232323232]
+        $micro = explode('.', $micro[0]);
         $start = new \DateTime('now', new \DateTimeZone('UTC'));
 
         $this->options = $options + [
