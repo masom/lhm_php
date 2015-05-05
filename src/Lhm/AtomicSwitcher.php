@@ -41,10 +41,13 @@ class AtomicSwitcher extends Command
      */
     public function __construct(AdapterInterface $adapter, \Phinx\Db\Table $origin, \Lhm\Table $destination, array $options = [])
     {
+        $micro = explode('.', microtime());
+        $start = new \DateTime('now', new \DateTimeZone('UTC'));
+
         $this->options = $options + [
                 'retry_sleep_time' => 10,
                 'max_retries' => 600,
-                'archive_name' => 'lhma_' . gmdate('Y_m_d_H_i_s') . "_{$origin->getName()}"
+                'archive_name' => 'lhma_' . $start->format('Y_m_d_H_i_s') . '_' . sprintf('%03d', $micro[1] / 1000) . "_{$origin->getName()}"
             ];
 
         $this->adapter = $adapter;
