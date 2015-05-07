@@ -32,7 +32,8 @@
         "robmorgan/phinx": "~0.4.0"
     },
     "suggest": {
-        "robmorgan/phinx": "Advanced database migration tool"
+        "robmorgan/phinx": "Advanced database migration tool",
+        "monolog/monolog": "Allows more advanced logging of the application flow"
     },
     "bin": ["bin/lhm"]
 }
