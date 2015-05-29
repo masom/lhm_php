@@ -69,7 +69,7 @@ It executes a dry-run unless the `--run` option is specified.
 
 
 ```
-Large Hadron Migrator version 0.3.0
+Large Hadron Migrator version 0.4.0
 
 Usage:
  cleanup [-c|--configuration="..."] [-p|--parser="..."] [-e|--environment="..."] [-r|--run] [-u|--until="..."]
