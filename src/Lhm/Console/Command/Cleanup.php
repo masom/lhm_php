@@ -78,7 +78,7 @@ class Cleanup extends AbstractCommand
         $until = $input->getOption('until');
 
         if ($until) {
-            $until = \DateTime::createFromFormat('Y-M-D_H:i:s', $until, new \DateTimeZone('UTC'));
+            $until = \DateTime::createFromFormat('Y-m-d_H:i:s', $until, new \DateTimeZone('UTC'));
 
             if ($until === false) {
                 throw new \InvalidArgumentException("The specified date in `until` is invalid.");
