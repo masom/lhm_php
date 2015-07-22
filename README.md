@@ -3,8 +3,9 @@
 # Large Hadron Migrator
 [Phinx](https://github.com/robmorgan/phinx) meets [LHM](https://github.com/soundcloud/lhm)
 
+This is a PHP port of https://github.com/soundcloud/lhm . lhm_php supports primary keys with a name other than `id`.
 
-This is a PHP port of https://github.com/soundcloud/lhm
+Version 0.4.0 is considered "production-ready". It is in use at PopKey.co to migrate thousands of records.
 
 ### TODO
 - [x] [SqlHelper] Support column renames
