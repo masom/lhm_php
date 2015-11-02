@@ -2,6 +2,11 @@
 
 All Notable changes to `masom\lhm_php` will be documented in this file
 
+## 0.4.1 - 2015-11-02
+
+### Fixed
+- Symphony version lock now only requires `2.x`.
+
 ## 0.4.0 - 2015-05-29
 
 ### Fixed
