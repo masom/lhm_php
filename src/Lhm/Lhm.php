@@ -110,8 +110,9 @@ class Lhm
             $lhmTables[] = $table;
         }
 
-        $tablesToClean = [];
         if ($options['until']) {
+            $tablesToClean = [];
+
             foreach ($lhmTables as $table) {
                 if (!preg_match("/^lhma_([0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2})_/", $table, $matches)) {
                     continue;
@@ -124,9 +125,10 @@ class Lhm
                 }
             }
             unset($table);
+
+            $lhmTables = $tablesToClean;
         }
 
-        $lhmTables = $tablesToClean;
 
         $lhmTriggers = [];
         /** @var \PDOStatement $statement */
