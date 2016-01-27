@@ -154,12 +154,12 @@ class Lhm
                 $adapter->query("DROP TRIGGER IF EXISTS {$trigger}");
             }
 
+            $adapter->query('SET foreign_key_checks=0');
             foreach ($lhmTables as $table) {
                 $logger->info("Dropping table `{$table}`");
-
-                $table = $adapter->quoteTableName($table);
-                $adapter->query("DROP TABLE IF EXISTS {$table}");
+                $adapter->dropTable($table);
             }
+            $adapter->query('SET foreign_key_checks=1');
 
             return true;
         } else {
