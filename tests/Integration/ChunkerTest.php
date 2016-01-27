@@ -118,14 +118,14 @@ class ChunkerTest extends \PHPUnit_Framework_TestCase
                 switch ($matcher->getInvocationCount()) {
                     case 1:
                         $this->assertEquals(
-                            "SELECT MIN(id) FROM 'users'",
+                            "SELECT MIN(`id`) FROM 'users'",
                             $query
                         );
                         return [1];
 
                     case 2:
                         $this->assertEquals(
-                            "SELECT MAX(id) FROM 'users'",
+                            "SELECT MAX(`id`) FROM 'users'",
                             $query
                         );
                         return [500];
