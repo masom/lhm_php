@@ -106,7 +106,7 @@ class Chunker extends Command
     protected function selectStart()
     {
         $name = $this->adapter->quoteTableName($this->origin->getName());
-        $start = $this->adapter->fetchRow("SELECT MIN(id) FROM {$name}")[0];
+        $start = $this->adapter->fetchRow("SELECT MIN({$this->primaryKey}) FROM {$name}")[0];
 
         return (int)$start;
     }
@@ -114,7 +114,7 @@ class Chunker extends Command
     protected function selectLimit()
     {
         $name = $this->adapter->quoteTableName($this->origin->getName());
-        $limit = $this->adapter->fetchRow("SELECT MAX(id) FROM {$name}")[0];
+        $limit = $this->adapter->fetchRow("SELECT MAX({$this->primaryKey}) FROM {$name}")[0];
 
         return (int)$limit;
     }
