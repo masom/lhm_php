@@ -2,6 +2,11 @@
 
 All Notable changes to `masom\lhm_php` will be documented in this file
 
+## 0.4.2 - 2016-02-08
+
+### Fixed
+- Fix the chunker when operating on non `id` primary keys. Thanks to @ristanpemble
+
 ## 0.4.1 - 2015-11-02
 
 ### Fixed
