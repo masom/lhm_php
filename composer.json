@@ -7,7 +7,7 @@
     "authors": [
         {
             "name": "Martin Samson",
-            "email": "martin@workshopx.com"
+            "email": "martin.samson@shopify.com"
         }
     ],
     "minimum-stability": "stable",
@@ -20,7 +20,7 @@
       "psr-4": { "Lhm\\Tests\\": "tests/" }
     },
     "require": {
-      "php": ">=5.5.0",
+      "php": ">=5.4.0",
       "psr/log": "1.0.0",
       "symfony/console": "~2",
       "symfony/event-dispatcher": "~2",
