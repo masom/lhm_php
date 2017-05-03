@@ -2,6 +2,11 @@
 
 All Notable changes to `masom\lhm_php` will be documented in this file
 
+## 0.4.3 - 2017-05-03
+
+### Fixed
+- Relax psr/log version
+
 ## 0.4.2 - 2016-02-08
 
 ### Fixed
