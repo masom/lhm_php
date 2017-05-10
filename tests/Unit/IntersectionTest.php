@@ -1,13 +1,11 @@
 <?php
-
-
 namespace tests\Unit;
-
 
 use Lhm\Intersection;
 use Phinx\Db\Table\Column;
+use PHPUnit\Framework\TestCase;
 
-class IntersectionTest extends \PHPUnit_Framework_TestCase
+class IntersectionTest extends TestCase
 {
     /**
      * @var \Phinx\Db\Table

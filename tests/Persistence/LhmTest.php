@@ -1,8 +1,5 @@
 <?php
-
-
 namespace Lhm\Tests\Persistence;
-
 
 use Lhm\Lhm;
 use Lhm\Tests\Persistence\Migrations\HybridPhinxMigration;
@@ -13,7 +10,6 @@ use Phinx\Migration\Manager\Environment;
 use Phinx\Migration\MigrationInterface;
 use Lhm\Tests\Persistence\Migrations\IndexMigration;
 use Lhm\Tests\Persistence\Migrations\RenameMigration;
-
 
 class LhmTest extends AbstractPersistenceTest
 {
@@ -144,12 +140,7 @@ class LhmTest extends AbstractPersistenceTest
 
         $rows = $this->adapter->fetchAll(sprintf('SHOW INDEXES FROM %s', $this->adapter->quoteTableName('ponies')));
         foreach ($rows as $row) {
-            if ($row['Key_name'] === 'ponies_age_idx') {
-                if ($row['Column_name'] === 'age' && $row['Non_unique'] === '1') {
-                    $this->fail('The ponies_age_idx should have been removed.');
-                    break;
-                }
-            }
+            $this->assertFalse($row['Key_name'] === 'ponies_age_idx', 'The ponies_age_idx should have been removed.');
         }
     }
 

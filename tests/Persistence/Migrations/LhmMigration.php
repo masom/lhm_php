@@ -1,6 +1,4 @@
 <?php
-
-
 namespace Lhm\Tests\Persistence\Migrations;
 
 use Lhm\Lhm;

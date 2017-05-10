@@ -1,11 +1,11 @@
 <?php
-
 namespace Lhm\Tests\Unit;
 
 use Lhm\SqlHelper;
 use Phinx\Db\Adapter\AdapterInterface;
+use PHPUnit\Framework\TestCase;
 
-class SqlHelperTest extends \PHPUnit_Framework_TestCase
+class SqlHelperTest extends TestCase
 {
     /**
      * @var SqlHelper

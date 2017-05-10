@@ -1,14 +1,12 @@
 <?php
-
-
 namespace Lhm\Tests\Persistence;
 
 use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Adapter\MysqlAdapter;
 use Symfony\Component\Console\Output\NullOutput;
+use PHPUnit\Framework\TestCase;
 
-
-abstract class AbstractPersistenceTest extends \PHPUnit_Framework_TestCase
+abstract class AbstractPersistenceTest extends TestCase
 {
     /** @var AdapterInterface */
     protected $adapter;
@@ -25,7 +23,7 @@ abstract class AbstractPersistenceTest extends \PHPUnit_Framework_TestCase
             'port' => getenv('LHM_DATABASE_PORT') ?: 3306
         ];
 
-        $this->adapter = new MysqlAdapter($options, new NullOutput());
+        $this->adapter = new MysqlAdapter($options, null);
         $this->adapter->setOptions($options);
 
         // ensure the database is empty for each test

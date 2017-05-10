@@ -1,13 +1,11 @@
 <?php
-
-
 namespace Lhm\Tests\Integration;
-
 
 use Lhm\LockedSwitcher;
 use Phinx\Db\Adapter\AdapterInterface;
+use PHPUnit\Framework\TestCase;
 
-class LockedSwitcherTest extends \PHPUnit_Framework_TestCase
+class LockedSwitcherTest extends TestCase
 {
 
     /**

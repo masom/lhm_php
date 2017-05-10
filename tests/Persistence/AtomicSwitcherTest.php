@@ -1,8 +1,5 @@
 <?php
-
-
 namespace Lhm\Tests\Persistence;
-
 
 use Lhm\AtomicSwitcher;
 use Lhm\Invoker;

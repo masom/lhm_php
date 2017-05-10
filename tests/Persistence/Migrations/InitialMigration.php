@@ -1,8 +1,5 @@
 <?php
-
-
 namespace Lhm\Tests\Persistence\Migrations;
-
 
 use Phinx\Migration\AbstractMigration;
 
