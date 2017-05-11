@@ -1,16 +1,13 @@
 <?php
-
-
 namespace Lhm\Tests\Integration;
-
 
 use Lhm\Chunker;
 use Lhm\SqlHelper;
 use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Table\Column;
+use PHPUnit\Framework\TestCase;
 
-
-class ChunkerTest extends \PHPUnit_Framework_TestCase
+class ChunkerTest extends TestCase
 {
 
     /** @var Chunker */

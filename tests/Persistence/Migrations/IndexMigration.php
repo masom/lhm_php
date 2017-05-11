@@ -1,8 +1,5 @@
 <?php
-
-
 namespace Lhm\Tests\Persistence\Migrations;
-
 
 use Lhm\Lhm;
 use Phinx\Db\Table;

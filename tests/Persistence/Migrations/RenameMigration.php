@@ -1,12 +1,9 @@
 <?php
-
-
 namespace Lhm\Tests\Persistence\Migrations;
 
 use Lhm\Lhm;
 use Phinx\Db\Table;
 use Phinx\Migration\AbstractMigration;
-
 
 class RenameMigration extends AbstractMigration
 {

@@ -1,8 +1,5 @@
 <?php
-
-
 namespace Lhm\Tests\Persistence;
-
 
 use Lhm\LockedSwitcher;
 use Lhm\Invoker;

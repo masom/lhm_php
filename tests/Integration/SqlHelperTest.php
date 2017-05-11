@@ -1,16 +1,13 @@
 <?php
-
-
 namespace Lhm\Tests\Integration;
-
 
 use Lhm\SqlHelper;
 use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Table;
 use Phinx\Db\Table\Column;
+use PHPUnit\Framework\TestCase;
 
-
-class SqlHelperTest extends \PHPUnit_Framework_TestCase
+class SqlHelperTest extends TestCase
 {
 
     /**

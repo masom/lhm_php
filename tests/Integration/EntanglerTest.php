@@ -3,14 +3,13 @@
 
 namespace Lhm\Tests\Integration;
 
-
 use Lhm\Entangler;
 use Lhm\SqlHelper;
 use Phinx\Db\Adapter\AdapterInterface;
 use Phinx\Db\Table\Column;
+use PHPUnit\Framework\TestCase;
 
-
-class EntanglerTest extends \PHPUnit_Framework_TestCase
+class EntanglerTest extends TestCase
 {
 
     /**

@@ -1,14 +1,11 @@
 <?php
-
-
 namespace Lhm\Tests\Integration;
-
 
 use Lhm\AtomicSwitcher;
 use Phinx\Db\Adapter\AdapterInterface;
+use PHPUnit\Framework\TestCase;
 
-
-class AtomicSwitcherTest extends \PHPUnit_Framework_TestCase
+class AtomicSwitcherTest extends TestCase
 {
 
     /**
