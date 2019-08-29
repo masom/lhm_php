@@ -54,7 +54,7 @@ class Cleanup extends AbstractCommand
             $this->loadConfig($input, $output);
         }
 
-        $this->loadManager($output);
+        $this->loadManager($input, $output);
 
         $environment = $input->getOption('environment');
 
